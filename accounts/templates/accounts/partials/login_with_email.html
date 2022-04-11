@@ -12,8 +12,8 @@
 
   {% csrf_token %}
   <input type="hidden" name="next" value="{{ next }}">
-  {% include 'users/auth/partials/fields/username.html' %}
-  {% include 'users/auth/partials/fields/password.html' %}
+  {% include 'accounts/partials/fields/username.html' %}
+  {% include 'accounts/partials/fields/password.html' %}
 
   <div class="row">
     <div class="col-8">
