@@ -19,7 +19,10 @@ from django.urls import path, include
 urlpatterns = [
     path('admin/', admin.site.urls),
 
-    path('accounts/', include('accounts.urls')),
+
+    # add account profile
+    path('', include('accounts.urls_profile')),
+    path('', include('accounts.urls')),
     # include api urls
     path('api/v1/', include('accounts_pkg.api_urls', namespace='api-v1')),
 ]

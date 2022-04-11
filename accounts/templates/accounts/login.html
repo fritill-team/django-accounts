@@ -1,4 +1,4 @@
-{% extends 'auth_base.html' %}
+{% extends 'accounts/auth_base.html' %}
 {% load static i18n %}
 
 
@@ -16,9 +16,9 @@
     <div class="card-body login-card-body">
       <p class="login-box-msg">{% translate 'Sign in to start your session' %}</p>
 
-      {% include 'users/auth/partials/login-tabs.html' %}
+      {% include 'accounts/partials/login-tabs.html' %}
 
-      {% include 'users/auth/partials/social_login.html' %}
+      {% include 'accounts/partials/social_login.html' %}
 
       <p class="mb-1">
         <a href="{% url "password_reset" %}">{% translate 'I forgot my password' %}</a>
