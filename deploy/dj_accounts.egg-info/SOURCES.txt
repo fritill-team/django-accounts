@@ -1,0 +1,10 @@
+LICENSE
+MANIFEST.in
+README.md
+pyproject.toml
+setup.cfg
+setup.py
+dj_accounts.egg-info/PKG-INFO
+dj_accounts.egg-info/SOURCES.txt
+dj_accounts.egg-info/dependency_links.txt
+dj_accounts.egg-info/top_level.txt
