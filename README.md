@@ -5,7 +5,7 @@
 
 ## Installation
 ```cd
-pip install django-accounts
+pip install df-accounts
 ```
 
 ## Configuration
