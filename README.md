@@ -1,11 +1,11 @@
 # Django Accounts
 
-* pypi: [Django Accounts](https://pypi.org/project/django-accounts/)
+* pypi: [Django Accounts](https://pypi.org/project/dj-accounts/1.0.0/)
 * authors (github): [@MahmoudNasser](https://github.com/elMeniwy), [@SohaybeKhaled](https://github.com/Sohype-Khaled)
 
 ## Installation
 ```cd
-pip install df-accounts
+pip install dj-accounts
 ```
 
 ## Configuration
