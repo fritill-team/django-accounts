@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: dj-accounts
-Version: 1.0.0
+Version: 1.0.2
 Summary: this application is for handling all auth operations
 Home-page: https://github.com/fritill-team/django-accounts
 Author: fritill
@@ -30,7 +30,7 @@ License-File: LICENSE
 
 ## Installation
 ```cd
-pip install django-accounts
+pip install dj-accounts
 ```
 
 ## Configuration
@@ -64,7 +64,7 @@ urlpatterns = [
 
 ### in your settings.py
 ```python
-AUTH_USER_MODEL = 'accounts.User'
+AUTH_USER_MODEL = ''
 
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/'

@@ -39,7 +39,7 @@ urlpatterns = [
 
 ### in your settings.py
 ```python
-AUTH_USER_MODEL = 'accounts.User'
+AUTH_USER_MODEL = ''
 
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/'
