@@ -3,7 +3,7 @@ from django.urls import path, reverse_lazy
 
 from .views import LoginView, RegisterView, VerifyEmailView, EmailVerificationCompleteView, VerifyPhoneView, \
     PhoneVerificationCompleteView, ChangeEmailView, PhoneUpdateView, \
-    ResendPhoneConfirmationView
+    ResendPhoneConfirmationView, UpdateProfileInfoView
 
 urlpatterns = [
     path('login/', LoginView.as_view(), name="login"),
@@ -46,5 +46,7 @@ urlpatterns = [
     path('email-change/', ChangeEmailView.as_view(), name='email-update'),
     path('phone-change/', PhoneUpdateView.as_view(), name='phone-update'),
 
+    # update profile info
+    path('profile/', UpdateProfileInfoView.as_view(), name='update_profile'),
 
 ]

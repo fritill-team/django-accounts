@@ -3,16 +3,16 @@
 {% autoescape off %}
 
 {% blocktranslate %}You're receiving this email because you registered new account at
-    {{ site_name }}.{% endblocktranslate %}
+{{ site_name }}.{% endblocktranslate %}
 
-  {% translate " Please click on the link to confirm your registration:" %}
-  {% block reset_link %}
-    {{ protocol }}:{{ domain }}{% url 'verify-email' uidb64=uid token=token %}
-  {% endblock %}
-  {% translate 'Your username, in case you’ve forgotten:' %} {{ user.get_username }}
+{% translate " Please click on the link to confirm your registration:" %}
+{% block reset_link %}
+{{ protocol }}:{{ domain }}{% url 'verify-email' uidb64=uid token=token %}
+{% endblock %}
+{% translate 'Your username, in case you’ve forgotten:' %} {{ user.get_username }}
 
-  {% translate "Thanks for using our site!" %}
+{% translate "Thanks for using our site!" %}
 
-  {% blocktranslate %}The {{ site_name }} team{% endblocktranslate %}
+{% blocktranslate %}The {{ site_name }} team{% endblocktranslate %}
 
 {% endautoescape %}

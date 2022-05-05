@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: dj-accounts
-Version: 1.0.2
+Version: 2.0.0
 Summary: this application is for handling all auth operations
 Home-page: https://github.com/fritill-team/django-accounts
 Author: fritill

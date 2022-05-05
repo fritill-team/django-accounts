@@ -1,4 +1,5 @@
 from pyexpat.errors import messages
+
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import login, get_user_model
@@ -7,11 +8,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import LoginView as BaseLoginView
 from django.shortcuts import render, redirect
 from django.urls import reverse
-
-try:
-    from django.utils.encoding import force_text
-except ImportError:
-    from django.utils.encoding import force_str as force_text
+from django.utils.encoding import force_text
 from django.utils.http import urlsafe_base64_decode
 from django.utils.timezone import now
 from django.utils.translation import gettext as _
@@ -40,7 +37,7 @@ class UpdateProfileInfoView(LoginRequiredMixin, View):
         if form.is_valid():
             form.save()
             messages.success(request, _('your profile has been updated successfully'))
-            return redirect(reverse('site:profile:index'))
+            return redirect(settings.LOGIN_REDIRECT_URL)
         return render(request, 'accounts/update_user_data_form.html', {
             'form': form
         })
@@ -59,7 +56,7 @@ class ChangeEmailView(LoginRequiredMixin, View):
         if form.is_valid():
             form.save()
             messages.success(request, 'your email has been updated successfully')
-            return redirect(reverse('site:profile:index'))
+            return redirect(settings.LOGIN_REDIRECT_URL)
 
         return render(request, 'accounts/update_email_form.html', {
             'form': form
@@ -79,9 +76,9 @@ class PhoneUpdateView(LoginRequiredMixin, View):
         if form.is_valid():
             request.user.phone_verified_at = None
             request.user.save()
-            return redirect(reverse('site:profile:index'))
+            return redirect(settings.LOGIN_REDIRECT_URL)
 
-        return render(request, 'users/profile/update_phone_number_form.html', {
+        return render(request, 'accounts/update_phone_number_form.html', {
             "form": form
         })
 

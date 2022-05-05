@@ -16,7 +16,7 @@ from rest_framework.test import APITestCase
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from ..factories import UserFactory
+from .factories import UserFactory
 from ..tokens import account_activation_token
 from ..views_api import UpdateProfileDataAPIView, UpdateEmailAPIView, UpdatePhoneAPIView, \
     VerifyPhoneAPIView, VerifyEmailAPIView, ResendPhoneConfirmationAPIView, UserLogoutAPIView
@@ -26,7 +26,7 @@ from ..views_api import UpdateProfileDataAPIView, UpdateEmailAPIView, UpdatePhon
 
 class SimpleJWTLoginTestCase(TestCase):
     def setUp(self):
-        self.url = reverse('api-v1:accounts:token_obtain_pair')
+        self.url = reverse('api-v1:token_obtain_pair')
         self.user = UserFactory()
         self.client = APIClient()
 
@@ -59,7 +59,7 @@ class SimpleJWTLoginTestCase(TestCase):
     def test_it_return_401_if_invalid_token_was_given(self):
         client = APIClient()
         client.credentials(HTTP_AUTHORIZATION='Bearer ' + 'abc')
-        response = client.get(reverse('api-v1:accounts:verify-phone'))
+        response = client.get(reverse('api-v1:verify-phone'))
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_the_returned_token_is_valid(self):
@@ -68,7 +68,7 @@ class SimpleJWTLoginTestCase(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
         token = response.data['access']
         client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(token))
-        response = client.get(reverse('api-v1:accounts:resend-email-activation'))
+        response = client.get(reverse('api-v1:resend-email-activation'))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
 
@@ -92,7 +92,7 @@ class TestUserLogoutViewStructure(TestCase):
 
 class TestUserLogoutView(TestCase):
     def setUp(self):
-        self.url = reverse('api-v1:accounts:token_obtain_pair')
+        self.url = reverse('api-v1:token_obtain_pair')
         self.user = UserFactory()
         self.client = APIClient()
         login_response = self.client.post(self.url, {'email': self.user.email, 'password': 'secret'})
@@ -100,17 +100,17 @@ class TestUserLogoutView(TestCase):
         self.token = login_response.data['access']
 
     def test_it_return_401_if_user_not_logged_in(self):
-        response = self.client.post(reverse('api-v1:accounts:logout'), {'refresh': self.refresh})
+        response = self.client.post(reverse('api-v1:logout'), {'refresh': self.refresh})
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_it_return_204_if_user_is_logged_out(self):
         self.client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(self.token))
-        response = self.client.post(reverse('api-v1:accounts:logout'), {'refresh': self.refresh})
+        response = self.client.post(reverse('api-v1:logout'), {'refresh': self.refresh})
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
     def test_it_return_400_if_invalid_token_was_given(self):
         self.client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(self.token))
-        response = self.client.post(reverse('api-v1:accounts:logout'), {'refresh': 'abc'})
+        response = self.client.post(reverse('api-v1:logout'), {'refresh': 'abc'})
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
 
@@ -118,7 +118,7 @@ class UserSignupAPIViewTestCase(TestCase):
     def setUp(self):
         self.client = APIClient()
         self.user = UserFactory()
-        self.url = reverse('api-v1:accounts:signup')
+        self.url = reverse('api-v1:signup')
         self.data = {
             "email": "test@test.test",
             "username": "TestUser",
@@ -181,7 +181,7 @@ class VerifyPhoneAPIViewPOSTTestCase(TestCase):
         self.user = UserFactory(phone="12312123")
         self.refresh = RefreshToken.for_user(self.user)
         self.client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(self.refresh.access_token))
-        self.url = reverse("api-v1:accounts:verify-phone")
+        self.url = reverse("api-v1:verify-phone")
         self.data = {"code": "777777"}
 
     def test_it_return_401_status_code_if_user_is_not_logged_in(self):
@@ -237,7 +237,7 @@ class PhoneConfirmationViewGETTestCase(TestCase):
         self.user = UserFactory()
         self.refresh = RefreshToken.for_user(self.user)
         self.client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(self.refresh.access_token))
-        self.url = reverse("api-v1:accounts:resend_phone_activation")
+        self.url = reverse("api-v1:resend_phone_activation")
 
     def test_it_returns_status_code_of_401_if_user_is_not_authenticated(self):
         self.client.logout()
@@ -280,13 +280,12 @@ class VerifyEmailAPIViewTestCase(TestCase):
         self.uid = urlsafe_base64_encode(force_bytes(self.user.pk))
         self.token = account_activation_token.make_token(self.user)
 
-
     def test_it_return_200_status_code_when_email_was_confirmed_successfully(self):
-        response = self.client.get(reverse('api-v1:accounts:verify-email', args=[self.uid, self.token]))
+        response = self.client.get(reverse('api-v1:verify-email', args=[self.uid, self.token]))
         self.assertEquals(response.status_code, 200)
 
     def test_message_value_when_email_was_verified(self):
-        response = self.client.get(reverse('api-v1:accounts:verify-email', args=[self.uid, self.token]))
+        response = self.client.get(reverse('api-v1:verify-email', args=[self.uid, self.token]))
         self.assertEquals(response.data['message'], _('Email was verified successfully.'))
 
 
@@ -318,7 +317,7 @@ class UpdateProfileDataAPIViewTestCase(APITestCase):
         self.user = UserFactory()
         self.refresh = RefreshToken.for_user(self.user)
         self.client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(self.refresh.access_token))
-        self.url = reverse('api-v1:accounts:profile_info')
+        self.url = reverse('api-v1:profile_info')
         self.data = {
             'first_name': self.user.first_name,
             'last_name': self.user.last_name,
@@ -373,7 +372,7 @@ class UpdateEmailAPIViewTestCase(APITestCase):
         self.user = UserFactory(email='test@test.com')
         self.refresh = RefreshToken.for_user(self.user)
         self.client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(self.refresh.access_token))
-        self.url = reverse('api-v1:accounts:update_email')
+        self.url = reverse('api-v1:update_email')
         self.data = {
             'new_email': "newtest@test.com",
             "password": "secret",
@@ -437,7 +436,7 @@ class UpdatePhoneAPIViewTestCase(APITestCase):
         self.user = UserFactory(phone='+201005263977')
         self.refresh = RefreshToken.for_user(self.user)
         self.client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(self.refresh.access_token))
-        self.url = reverse('api-v1:accounts:update_phone')
+        self.url = reverse('api-v1:update_phone')
         self.data = {
             'new_phone': "+201005263988",
             "password": "secret",
