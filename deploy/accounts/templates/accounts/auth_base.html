@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta content="width=device-width, initial-scale=1" name="viewport">
   <title>{% translate "Accounts" %} | {% block page_title %}{% endblock %}</title>
   {% block styles %}{% endblock %}
 </head>
@@ -16,11 +16,11 @@
 </div>
 
 {% block scripts %}
-  <script>
-    $('.date-field').datetimepicker({
-      format: 'L'
-    });
-  </script>
+<script>
+  $('.date-field').datetimepicker({
+    format: 'L'
+  });
+</script>
 {% endblock %}
 </body>
 </html>

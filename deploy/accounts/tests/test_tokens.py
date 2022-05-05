@@ -1,6 +1,6 @@
 from django.test import TestCase
 
-from accounts.factories import UserFactory
+from .factories import UserFactory
 from accounts.tokens import account_activation_token
 
 

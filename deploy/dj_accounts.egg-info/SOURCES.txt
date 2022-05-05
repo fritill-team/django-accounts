@@ -7,13 +7,13 @@ setup.py
 accounts/__init__.py
 accounts/apps.py
 accounts/backends.py
-accounts/factories.py
 accounts/forms.py
 accounts/serializers.py
 accounts/tokens.py
-accounts/urls.py
-accounts/urls_api_v1.py
+accounts/urls_auth.py
+accounts/urls_auth_api.py
 accounts/urls_profile.py
+accounts/urls_profile_api.py
 accounts/verify_phone.py
 accounts/views.py
 accounts/views_api.py
@@ -21,7 +21,10 @@ accounts/services/__init__.py
 accounts/services/activation_email.py
 accounts/services/twilio.py
 accounts/tests/__init__.py
+accounts/tests/apps.py
+accounts/tests/factories.py
 accounts/tests/mocks.py
+accounts/tests/models.py
 accounts/tests/test_backends.py
 accounts/tests/test_forms.py
 accounts/tests/test_serializers.py

@@ -5,7 +5,6 @@ from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.contrib.auth.models import User
 from django.contrib.auth.views import LoginView
 from django.contrib.auth.views import LoginView as BaseLoginView
 from django.test import TestCase, Client
@@ -17,7 +16,7 @@ from django.utils.timezone import now
 from django.utils.translation import gettext_lazy as _
 from django.views import View
 
-from ..factories import UserFactory
+from .factories import UserFactory
 from ..forms import PhoneLoginForm, RegisterForm, UserCreationForm, UpdateUserDataForm
 from ..tokens import account_activation_token
 from ..views import LoginView, RegisterView, VerifyPhoneView, PhoneVerificationCompleteView, VerifyEmailView, \
@@ -524,7 +523,7 @@ class UpdateProfileInfoGetViewTestCase(TestCase):
 
     def test_template_used(self):
         response = self.client.get(self.url)
-        self.assertTemplateUsed(response, "users/profile/update_user_data_form.html")
+        self.assertTemplateUsed(response, "accounts/update_user_data_form.html")
 
     def test_context_contains_form(self):
         response = self.client.get(self.url)
@@ -559,7 +558,7 @@ class UpdateProfileInfoPostViewTestCase(TestCase):
 
     def test_template_used(self):
         response = self.client.post(self.url)
-        self.assertTemplateUsed(response, "users/profile/update_user_data_form.html")
+        self.assertTemplateUsed(response, "accounts/update_user_data_form.html")
 
     def test_context_contains_form_on_error(self):
         response = self.client.post(self.url, data={})
@@ -568,7 +567,7 @@ class UpdateProfileInfoPostViewTestCase(TestCase):
     @override_settings(PROFILE_FORM=UpdateUserDataForm)
     def test_it_redirect_to_success_url(self):
         response = self.client.post(self.url, data=self.data)
-        self.assertRedirects(response, reverse('site:profile:index'), fetch_redirect_response=False)
+        self.assertRedirects(response, settings.LOGIN_REDIRECT_URL)
 
     @override_settings(PROFILE_FORM=UpdateUserDataForm)
     def test_message_value_when_data_posted_successfully(self):
@@ -591,8 +590,9 @@ class UpdateEmailViewGetTestCase(TestCase):
 
     def test_template_used(self):
         response = self.client.get(self.url)
-        self.assertTemplateUsed(response, "users/profile/update_email_form.html")
+        self.assertTemplateUsed(response, "accounts/update_email_form.html")
 
+    @override_settings(LOGIN_URL='/login/', )
     def test_context_contains_form(self):
         response = self.client.get(self.url)
         self.assertIn("form", response.context)
@@ -624,7 +624,7 @@ class UpdateEmailViewPostTestCase(TestCase):
 
     def test_template_used(self):
         response = self.client.post(self.url)
-        self.assertTemplateUsed(response, "users/profile/update_email_form.html")
+        self.assertTemplateUsed(response, "accounts/update_email_form.html")
 
     def test_context_contains_form(self):
         response = self.client.post(self.url)
@@ -632,7 +632,7 @@ class UpdateEmailViewPostTestCase(TestCase):
 
     def test_it_redirect_to_success_url(self):
         response = self.client.post(self.url, data=self.data)
-        self.assertRedirects(response, reverse('site:profile:index'))
+        self.assertRedirects(response, settings.LOGIN_REDIRECT_URL)
 
 
 class UpdatePhoneViewGETTestCase(TestCase):
@@ -649,7 +649,7 @@ class UpdatePhoneViewGETTestCase(TestCase):
 
     def test_template_used(self):
         response = self.client.get(self.url)
-        self.assertTemplateUsed(response, "users/profile/update_phone_number_form.html")
+        self.assertTemplateUsed(response, "accounts/update_phone_number_form.html")
 
     def test_context_contains_form(self):
         response = self.client.get(self.url)
@@ -712,7 +712,7 @@ class UpdatePhoneViewPOSTTestCase(TestCase):
 
     def test_template_used(self):
         response = self.client.post(self.url)
-        self.assertTemplateUsed(response, "users/profile/update_phone_number_form.html")
+        self.assertTemplateUsed(response, "accounts/update_phone_number_form.html")
 
     def test_context_contains_form(self):
         response = self.client.post(self.url)
@@ -721,8 +721,8 @@ class UpdatePhoneViewPOSTTestCase(TestCase):
     def test_it_rerender_form_on_failure(self):
         UserFactory(phone='+201005263977')
         response = self.client.post(self.url, self.data)
-        self.assertTemplateUsed(response, "users/profile/update_phone_number_form.html")
+        self.assertTemplateUsed(response, "accounts/update_phone_number_form.html")
 
     def test_it_redirect_to_success_url(self):
         response = self.client.post(self.url, data=self.data)
-        self.assertRedirects(response, reverse('site:profile:index'))
+        self.assertRedirects(response, settings.LOGIN_REDIRECT_URL)

@@ -1,5 +1,4 @@
 from django.contrib.auth import password_validation
-from django.contrib.auth.models import User
 from django.test import TestCase
 from django.utils.translation import gettext as _
 from rest_framework import serializers
@@ -87,8 +86,6 @@ class RegistrationSerializerTestCase(TestCase):
         self.assertEquals(self.serializer.fields['phone'].help_text, _("Required, please provide your phone number"))
 
 
-
-
 class LogoutSerializerStructureTestCase(TestCase):
     def setUp(self):
         self.serializer = LogoutSerializer(data={'refresh': 'test'})
@@ -107,8 +104,6 @@ class LogoutSerializerStructureTestCase(TestCase):
 
     def test_it_has_save_method(self):
         self.assertTrue(hasattr(self.serializer, 'save'))
-
-
 
 
 # profile serializer tests
@@ -131,6 +126,7 @@ class UpdateUserDataSerializerStructureTestCase(TestCase):
 
     def test_it_has_last_name_field(self):
         self.assertIn('last_name', self.serializer.fields)
+
 
 class UpdateEmailSerializerStructureTestCase(TestCase):
     def setUp(self):

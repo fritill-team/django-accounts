@@ -1,6 +1,6 @@
 from django.test import TestCase, override_settings, Client
 
-from accounts.factories import UserFactory
+from .factories import UserFactory
 
 
 class UsernameOrPhoneModelBackendTestCase(TestCase):
@@ -54,4 +54,3 @@ class UsernameOrPhoneModelBackendTestCase(TestCase):
     def test_it_fails_if_user_does_not_exists(self):
         self.client.login(email="doesnotexist@mail.com", password="secret")
         self.assertNotIn("sessionid", self.client.cookies)
-

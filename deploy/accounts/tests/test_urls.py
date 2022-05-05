@@ -39,31 +39,31 @@ class APIUrlsTestCase(TestCase):
 
     # EMAIL
     def test_verify_email_confirmation_url_resolves(self):
-        url = reverse('api-v1:accounts:verify-email', args=['token', 'email'])
+        url = reverse('api-v1:verify-email', args=['token', 'email'])
         self.assertEquals(resolve(url).func.view_class, VerifyEmailAPIView)
 
     def test_resend_email_confirmation_code_url_resolves(self):
-        url = reverse('api-v1:accounts:resend-email-activation')
+        url = reverse('api-v1:resend-email-activation')
         self.assertEqual(resolve(url).func.view_class, ResendEmailConfirmationLinkView)
 
     # phone verification
     def test_phone_verify_url_resolves(self):
-        url = reverse("api-v1:accounts:verify-phone")
+        url = reverse("api-v1:verify-phone")
         self.assertEquals(resolve(url).func.view_class, VerifyPhoneAPIView)
 
     def test_resend_phone_activation_code_url_resolves(self):
-        url = reverse('api-v1:accounts:resend_phone_activation')
+        url = reverse('api-v1:resend_phone_activation')
         self.assertEqual(resolve(url).func.view_class, ResendPhoneConfirmationAPIView)
 
     # profile
     def test_user_update_profile_info_api_view_url_resolves(self):
-        url = reverse('api-v1:accounts:profile_info')
+        url = reverse('api-v1:profile_info')
         self.assertEqual(resolve(url).func.view_class, UpdateProfileDataAPIView)
 
     def test_update_user_email_api_view_url_resolves(self):
-        url = reverse('api-v1:accounts:update_email')
+        url = reverse('api-v1:update_email')
         self.assertEqual(resolve(url).func.view_class, UpdateEmailAPIView)
 
     def test_update_user_phone_api_view_url_resolves(self):
-        url = reverse('api-v1:accounts:update_phone')
+        url = reverse('api-v1:update_phone')
         self.assertEqual(resolve(url).func.view_class, UpdatePhoneAPIView)

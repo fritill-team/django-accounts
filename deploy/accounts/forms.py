@@ -83,6 +83,7 @@ class PhoneLoginForm(forms.Form):
         password = self.cleaned_data.get('password')
         remember_me = self.cleaned_data.get('remember_me')
         login_by = None
+
         if not phone and not username:
             raise ValidationError(
                 self.error_messages['phone_or_username_are_required'],
@@ -101,6 +102,7 @@ class PhoneLoginForm(forms.Form):
         elif username:
             login_by = username
             credentials.update({UserModel.USERNAME_FIELD: username})
+
         if login_by and password:
             self.user_cache = authenticate(request=self.request, **credentials)
             if not self.user_cache:

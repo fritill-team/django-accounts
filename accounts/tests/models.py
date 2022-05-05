@@ -1,10 +1,9 @@
-from django.core.validators import EmailValidator
-from django.utils.timezone import now
+from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.validators import UnicodeUsernameValidator
+from django.core.validators import EmailValidator
 from django.db import models
 from django.utils.translation import gettext_lazy as _
-from django.contrib.auth.base_user import BaseUserManager
 
 
 class UserManager(BaseUserManager):
@@ -66,7 +65,6 @@ class User(AbstractUser):
         error_messages={'unique': _("A user with that phone already exists.")})
 
     phone_verified_at = models.DateTimeField(blank=True, null=True)
-
 
     def __str__(self):
         return self.username

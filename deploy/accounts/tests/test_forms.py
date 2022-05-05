@@ -1,15 +1,13 @@
 from django import forms
-from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import UserCreationForm
-from django.contrib.auth.models import User
 from django.contrib.sessions.middleware import SessionMiddleware
 from django.test import TestCase, RequestFactory
 from django.test import override_settings
 from django.utils.timezone import now
 from django.utils.translation import gettext_lazy as _
 
-from accounts.factories import UserFactory
+from .factories import UserFactory
 from accounts.forms import PhoneLoginForm, RegisterForm, VerifyPhoneForm
 from accounts.forms import UpdateUserDataForm, UpdateEmailForm, UpdatePhoneNumberForm
 
@@ -195,6 +193,7 @@ class PhoneLoginFormStructureTestCase(TestCase):
 
 
 class PhoneLoginFormValidationTestCase(TestCase):
+
     def setUp(self):
         self.request = RequestFactory().get('/')
         middleware = SessionMiddleware()
@@ -254,11 +253,11 @@ class PhoneLoginFormValidationTestCase(TestCase):
             "fields may be case-sensitive."
         ), form.errors.as_data()['__all__'][0].message)
 
+    @override_settings(AUTHENTICATION_BACKENDS=["accounts.backends.UsernameOrPhoneModelBackend"])
     def test_it_authenticates_correct_user_by_phone(self):
         self.DEFAULT_DATA.pop('username')
         form = self.Form(request=self.request, data=self.DEFAULT_DATA)
         f = form.is_valid()
-        print(form.errors)
         self.assertTrue(form.is_valid())
 
     def test_it_authenticates_correct_user_by_username(self):
