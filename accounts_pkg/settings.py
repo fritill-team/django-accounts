@@ -5,7 +5,6 @@ from pathlib import Path
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.0/howto/deployment/checklist/
 
@@ -17,7 +16,6 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -28,6 +26,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'accounts',
+    'accounts.tests',
     'rest_framework_simplejwt.token_blacklist',
 ]
 
@@ -61,7 +60,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'accounts_pkg.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
 
@@ -71,7 +69,6 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/4.0/ref/settings/#auth-password-validators
@@ -91,7 +88,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/4.0/topics/i18n/
 
@@ -102,7 +98,6 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 
 USE_TZ = True
-
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.0/howto/static-files/
@@ -115,16 +110,13 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
+AUTH_USER_MODEL = 'tests.User'
 
-AUTH_USER_MODEL = 'accounts.User'
-
-LOGIN_URL = '/accounts/login/'
+LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
 
 PHONE_VERIFY_SERVICE = 'accounts.tests.mocks.TestingVerifyService'
-
-
 
 # django restFramework settings
 REST_FRAMEWORK = {
@@ -163,4 +155,4 @@ TOKEN_TYPE_CLAIM = 'token_type'
 JTI_CLAIM = 'jti',
 SLIDING_TOKEN_REFRESH_EXP_CLAIM = 'refresh_exp'
 SLIDING_TOKEN_LIFETIME = timedelta(minutes=5)
-SLIDING_TOKEN_REFRESH_LIFETIME = timedelta(days=1),
+SLIDING_TOKEN_REFRESH_LIFETIME = timedelta(days=1)

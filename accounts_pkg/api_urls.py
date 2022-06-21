@@ -4,6 +4,7 @@ app_name = 'api-v1'
 
 urlpatterns = [
     # accounts urls
-    path('accounts/', include('accounts.urls_api_v1', namespace='accounts')),
+    path('', include('accounts.urls_auth_api')),
+    path('', include('accounts.urls_profile_api')),
 
 ]

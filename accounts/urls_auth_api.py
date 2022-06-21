@@ -3,14 +3,12 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from accounts.views_api import UpdateEmailAPIView, UpdateProfileDataAPIView, UpdatePhoneAPIView, VerifyPhoneAPIView, \
     VerifyEmailAPIView, ResendPhoneConfirmationAPIView, UserSignupAPIView, ResendEmailConfirmationLinkView, \
-    UserLogoutAPIView, PasswordResetAPIView
-
-app_name = 'accounts'
+    UserLogoutAPIView, PasswordResetAPIView, LoginAPIView
 
 urlpatterns = [
 
     # simple jwt
-    path('login/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('login/', LoginAPIView.as_view(), name='login'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('logout/', UserLogoutAPIView.as_view(), name='logout'),
     path('signup/', UserSignupAPIView.as_view(), name='signup'),
@@ -27,7 +25,7 @@ urlpatterns = [
     path('resend_phone_activation/', ResendPhoneConfirmationAPIView.as_view(), name='resend_phone_activation'),
 
     # profile urls
-    path('update/', UpdateProfileDataAPIView.as_view(), name='profile_info'),
-    path('email/update/', UpdateEmailAPIView.as_view(), name='update_email'),
-    path('phone/update/', UpdatePhoneAPIView.as_view(), name='update_phone'),
+    # path('update/', UpdateProfileDataAPIView.as_view(), name='profile_info'),
+    # path('email/update/', UpdateEmailAPIView.as_view(), name='update_email'),
+    # path('phone/update/', UpdatePhoneAPIView.as_view(), name='update_phone'),
 ]

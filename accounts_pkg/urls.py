@@ -22,7 +22,7 @@ urlpatterns = [
 
     # add account profile
     path('', include('accounts.urls_profile')),
-    path('', include('accounts.urls')),
+    path('', include('accounts.urls_auth')),
     # include api urls
-    path('api/v1/', include('accounts_pkg.api_urls', namespace='api-v1')),
+    path('api/', include('accounts_pkg.api_urls', namespace='api-v1')),
 ]

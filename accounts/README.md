@@ -1,46 +1,44 @@
 ## TODO
+
 * Views
-  * [x] LoginView
-  * [x] RegisterView
-  * [x] ResendVerificationOTPView
-  * [x] VerifyPhoneView
-  * [x] PhoneVerificationCompleteView
-  * [x] VerifyEmailView
-  * [x] EmailVerificationCompleteView
-  * [x] ChangeEmailView
-  * [x] ChangePhoneView
-  * [x] ChangeProfileView
+    * [x] LoginView
+    * [x] RegisterView
+    * [x] ResendVerificationOTPView
+    * [ ] VerifyPhoneView
+    * [ ] PhoneVerificationCompleteView
+    * [ ] VerifyEmailView
+    * [ ] EmailVerificationCompleteView
+    * [ ] ChangeEmailView
+    * [ ] ChangePhoneView
+    * [ ] ChangeProfileView
 * APIViews
-  * [X] LoginAPIView
-  * [x] RegisterAPIView
-  * [x] ResendVerificationOTPAPIView
-  * [x] VerifyPhoneAPIView
-  * [x] ResendVerificationEmailAPIView
-  * [x] VerifyEmailAPIView
-  * [x] ChangeEmailAPIView
-  * [x] ChangePhoneAPIView
-  * [x] ChangeProfileAPIView
-  * [x] PasswordChangeAPIView
-  * [x] LogoutAPIView
-  * [ ] PasswordResetAPIView
+    * [ ] LoginAPIView
+    * [ ] RegisterAPIView
+    * [ ] ResendVerificationOTPAPIView
+    * [ ] VerifyPhoneAPIView
+    * [ ] ResendVerificationEmailAPIView
+    * [ ] VerifyEmailAPIView
+    * [ ] ChangeEmailAPIView
+    * [ ] ChangePhoneAPIView
+    * [ ] ChangeProfileAPIView
+    * [ ] PasswordChangeAPIView
+    * [ ] LogoutAPIView
+    * [ ] PasswordResetAPIView
 * Forms and Form Fields
-  * [ ] LoginForm
-  * [ ] RegisterForm
-  * [ ] ResendVerificationOTPForm
-  * [ ] VerifyPhoneForm
-  * [ ] VerifyEmailForm
-  * [ ] ChangeEmailForm
-  * [ ] ChangePhoneForm
-  * [ ] ChangeProfileForm
-  * [ ] PasswordChangeForm
-  * [ ] PasswordResetForm
+    * [ ] LoginForm
+    * [ ] RegisterForm
+    * [ ] ResendVerificationOTPForm
+    * [ ] VerifyPhoneForm
+    * [ ] VerifyEmailForm
+    * [ ] ChangeEmailForm
+    * [ ] ChangePhoneForm
+    * [ ] ChangeProfileForm
+    * [ ] PasswordChangeForm
+    * [ ] PasswordResetForm
 * Services
 * Models
 
-
-
 ## Models
-
 
 In your `User` model add the following fields
 
