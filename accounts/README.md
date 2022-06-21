@@ -69,15 +69,3 @@ phone = models.CharField(max_length=50, blank=False, null=False, unique=True,
                          error_messages={'unique': _("A user with that phone already exists.")})
 phone_verified_at = models.DateTimeField(blank=True, null=True)
 ```
-
-and in `settings` file set
-
-```python
-PHONE_AUTHENTICATION_ACTIVE = True
-
-AUTHENTICATION_BACKENDS = (
-    # ...
-    'apps.users.auth.backends.UsernameOrPhoneModelBackend',
-    # ...     
-)
-```
