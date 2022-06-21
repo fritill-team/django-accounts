@@ -21,5 +21,5 @@ urlpatterns = [
     path('', include('accounts.urls_profile')),
     path('', include('accounts.urls_auth')),
     # include api urls
-    path('api/', include('accounts_pkg.api_urls', namespace='api-v1')),
+    path('api/', include('accounts_pkg.api_urls')),
 ]

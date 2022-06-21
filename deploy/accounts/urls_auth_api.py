@@ -2,7 +2,7 @@ from django.urls import path
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from accounts.views_api import UpdateEmailAPIView, UpdateProfileDataAPIView, UpdatePhoneAPIView, VerifyPhoneAPIView, \
-    VerifyEmailAPIView, ResendPhoneConfirmationAPIView, UserSignupAPIView, ResendEmailConfirmationLinkView, \
+    VerifyEmailAPIView, ResendPhoneConfirmationAPIView, UserSignupAPIView, ResendEmailConfirmationLinkAPIView, \
     UserLogoutAPIView, PasswordResetAPIView, LoginAPIView
 
 urlpatterns = [
@@ -18,7 +18,7 @@ urlpatterns = [
 
     # email verification
     path('verify/email/<str:uidb64>/<str:token>/', VerifyEmailAPIView.as_view(), name='verify-email'),
-    path('resend_email_activation/', ResendEmailConfirmationLinkView.as_view(), name='resend-email-activation'),
+    path('resend_email_activation/', ResendEmailConfirmationLinkAPIView.as_view(), name='resend-email-activation'),
 
     # phone verification
     path('verify/phone/', VerifyPhoneAPIView.as_view(), name='verify-phone'),

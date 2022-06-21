@@ -131,10 +131,10 @@ class ResendPhoneConfirmationAPIView(APIView):
 
 
 # email verification
-class ResendEmailConfirmationLinkView(APIView):
+class ResendEmailConfirmationLinkAPIView(APIView):
     def get(self, request, *args, **kwargs):
         send_mail_confirmation(request, request.user)
-        return Response({"message": 'Email activation link resent successfully'})
+        return Response({"message": _('Email activation link resent successfully')})
 
 
 class VerifyEmailAPIView(APIView):
