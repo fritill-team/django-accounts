@@ -3,9 +3,9 @@ from django.test import TestCase
 from django.urls import resolve, reverse
 
 from accounts.views import ResendPhoneConfirmationView, VerifyPhoneView, PhoneVerificationCompleteView, LoginView, \
-    RegisterView
+    RegisterView, ResendEmailConfirmationLinkView as EmailConfirmationView
 from accounts.views_api import UpdateProfileDataAPIView, UpdateEmailAPIView, UpdatePhoneAPIView, VerifyPhoneAPIView, \
-    ResendPhoneConfirmationAPIView, VerifyEmailAPIView, ResendEmailConfirmationLinkView
+    ResendPhoneConfirmationAPIView, VerifyEmailAPIView, ResendEmailConfirmationLinkAPIView
 
 
 class SiteUrlsTestCase(TestCase):
@@ -34,6 +34,11 @@ class SiteUrlsTestCase(TestCase):
         url = reverse("phone-verification-complete")
         self.assertEquals(resolve(url).func.view_class, PhoneVerificationCompleteView)
 
+    # Email Verification
+    def test_resend_email_confirmation_link_url_resolves(self):
+        url = reverse("resend-email-confirmation")
+        self.assertEquals(resolve(url).func.view_class, EmailConfirmationView)
+
 
 class APIUrlsTestCase(TestCase):
 
@@ -44,7 +49,7 @@ class APIUrlsTestCase(TestCase):
 
     def test_resend_email_confirmation_code_url_resolves(self):
         url = reverse('api-v1:resend-email-activation')
-        self.assertEqual(resolve(url).func.view_class, ResendEmailConfirmationLinkView)
+        self.assertEqual(resolve(url).func.view_class, ResendEmailConfirmationLinkAPIView)
 
     # phone verification
     def test_phone_verify_url_resolves(self):
