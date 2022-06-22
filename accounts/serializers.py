@@ -1,7 +1,8 @@
 from django.conf import settings
-from django.contrib.auth import get_user_model
+from django.contrib.auth import get_user_model, authenticate
 from django.contrib.auth import password_validation
-from django.contrib.auth.forms import PasswordResetForm, AuthenticationForm
+from django.contrib.auth.forms import PasswordResetForm, AuthenticationForm, PasswordChangeForm
+from django.contrib.auth.password_validation import validate_password
 from django.utils.translation import gettext as _
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
@@ -13,7 +14,7 @@ from .forms import RegisterForm, PhoneLoginForm
 UserModel = get_user_model()
 
 
-class PhoneLoginSerializer(serializers.Serializer):
+class LoginSerializer(serializers.Serializer):
     email = serializers.EmailField(required=False, allow_blank=True)
     username = serializers.CharField(required=False, allow_blank=True)
     phone = serializers.CharField(required=False, allow_blank=True)
@@ -117,3 +118,23 @@ class UpdatePhoneNumberSerializer(serializers.ModelSerializer):
     class Meta:
         model = get_user_model()
         fields = ['phone', 'password']
+
+
+class ChangePasswordSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserModel
+        fields = ['new_password1', 'new_password2', 'old_password']
+
+    new_password1 = serializers.CharField(required=True, write_only=True)
+    new_password2 = serializers.CharField(required=True, write_only=True, validators=[validate_password])
+    old_password = serializers.CharField(required=True, write_only=True)
+    form = None
+
+    def validate(self, data):
+        self.form = PasswordChangeForm(data=data, user=self.context['request'].user)
+        if not self.form.is_valid():
+            serializers.ValidationError(self.form.errors)
+        return data
+
+    def save(self, **kwargs):
+        self.form.save()

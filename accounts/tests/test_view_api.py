@@ -2,7 +2,7 @@ import inspect
 
 from django.core import mail
 from django.test import TestCase, override_settings
-from django.urls import reverse
+from django.urls import reverse, resolve
 from django.utils import timezone, dateformat
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
@@ -17,9 +17,10 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from .factories import UserFactory
+from ..serializers import ChangePasswordSerializer
 from ..utils import account_activation_token
 from ..views_api import UpdateProfileDataAPIView, UpdateEmailAPIView, UpdatePhoneAPIView, \
-    VerifyPhoneAPIView, VerifyEmailAPIView, ResendPhoneConfirmationAPIView, UserLogoutAPIView
+    VerifyPhoneAPIView, VerifyEmailAPIView, ResendPhoneConfirmationAPIView, UserLogoutAPIView, ChangePasswordAPIView
 
 
 # test auth
@@ -27,9 +28,9 @@ class LoginAPIViewTestCase(TestCase):
     def setUp(self):
         self.client = APIClient()
         self.user = UserFactory(username="TestTest", email="test@aol.com", phone="+123456789")
-        self.url = reverse("api-v1:login")
+        self.url = reverse("login_api")
         self.data = {
-            "username": "test@aol.com",
+            "username": "TestTest",
             "email": "test@aol.com",
             "phone": "+123456789",
             "password": "secret"
@@ -156,7 +157,7 @@ class TestUserLogoutViewStructure(TestCase):
 class TestUserLogoutView(TestCase):
     @override_settings(PHONE_AUTHENTICATION_ACTIVE=True)
     def setUp(self):
-        self.url = reverse('api-v1:login')
+        self.url = reverse('login_api')
         self.user = UserFactory()
         self.client = APIClient()
         login_response = self.client.post(self.url, {'email': self.user.email, 'password': 'secret'})
@@ -164,17 +165,17 @@ class TestUserLogoutView(TestCase):
         self.token = login_response.data['access_token']
 
     def test_it_return_401_if_user_not_logged_in(self):
-        response = self.client.post(reverse('api-v1:logout'), {'refresh': self.refresh})
+        response = self.client.post(reverse('logout_api'), {'refresh': self.refresh})
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_it_return_204_if_user_is_logged_out(self):
         self.client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(self.token))
-        response = self.client.post(reverse('api-v1:logout'), {'refresh': self.refresh})
+        response = self.client.post(reverse('logout_api'), {'refresh': self.refresh})
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
     def test_it_return_400_if_invalid_token_was_given(self):
         self.client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(self.token))
-        response = self.client.post(reverse('api-v1:logout'), {'refresh': 'abc'})
+        response = self.client.post(reverse('logout_api'), {'refresh': 'abc'})
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
 
@@ -182,7 +183,7 @@ class UserSignupAPIViewTestCase(TestCase):
     def setUp(self):
         self.client = APIClient()
         self.user = UserFactory()
-        self.url = reverse('api-v1:signup')
+        self.url = reverse('signup_api')
         self.data = {
             "email": "test@test.test",
             "username": "TestUser",
@@ -245,7 +246,7 @@ class VerifyPhoneAPIViewPOSTTestCase(TestCase):
         self.user = UserFactory(phone="12312123")
         self.refresh = RefreshToken.for_user(self.user)
         self.client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(self.refresh.access_token))
-        self.url = reverse("api-v1:verify-phone")
+        self.url = reverse("verify_phone_api")
         self.data = {"code": "777777"}
 
     def test_it_return_401_status_code_if_user_is_not_logged_in(self):
@@ -301,7 +302,7 @@ class PhoneConfirmationViewGETTestCase(TestCase):
         self.user = UserFactory()
         self.refresh = RefreshToken.for_user(self.user)
         self.client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(self.refresh.access_token))
-        self.url = reverse("api-v1:resend_phone_activation")
+        self.url = reverse("resend_phone_activation_api")
 
     def test_it_returns_status_code_of_401_if_user_is_not_authenticated(self):
         self.client.logout()
@@ -345,11 +346,11 @@ class VerifyEmailAPIViewTestCase(TestCase):
         self.token = account_activation_token.make_token(self.user)
 
     def test_it_return_200_status_code_when_email_was_confirmed_successfully(self):
-        response = self.client.get(reverse('api-v1:verify-email', args=[self.uid, self.token]))
+        response = self.client.get(reverse('verify_email_api', args=[self.uid, self.token]))
         self.assertEquals(response.status_code, 200)
 
     def test_message_value_when_email_was_verified(self):
-        response = self.client.get(reverse('api-v1:verify-email', args=[self.uid, self.token]))
+        response = self.client.get(reverse('verify_email_api', args=[self.uid, self.token]))
         self.assertEquals(response.data['message'], _('Email was verified successfully.'))
 
 
@@ -381,7 +382,7 @@ class UpdateProfileDataAPIViewTestCase(APITestCase):
         self.user = UserFactory()
         self.refresh = RefreshToken.for_user(self.user)
         self.client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(self.refresh.access_token))
-        self.url = reverse('api-v1:profile_info')
+        self.url = reverse('update_profile_api')
         self.data = {
             'first_name': self.user.first_name,
             'last_name': self.user.last_name,
@@ -436,7 +437,7 @@ class UpdateEmailAPIViewTestCase(APITestCase):
         self.user = UserFactory(email='test@test.com')
         self.refresh = RefreshToken.for_user(self.user)
         self.client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(self.refresh.access_token))
-        self.url = reverse('api-v1:update_email')
+        self.url = reverse('update_email_api')
         self.data = {
             'new_email': "newtest@test.com",
             "password": "secret",
@@ -500,7 +501,7 @@ class UpdatePhoneAPIViewTestCase(APITestCase):
         self.user = UserFactory(phone='+201005263977')
         self.refresh = RefreshToken.for_user(self.user)
         self.client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(self.refresh.access_token))
-        self.url = reverse('api-v1:update_phone')
+        self.url = reverse('update_phone_api')
         self.data = {
             'new_phone': "+201005263988",
             "password": "secret",
@@ -529,3 +530,56 @@ class UpdatePhoneAPIViewTestCase(APITestCase):
         }
         response = self.client.put(self.url, data=data)
         self.assertEquals(response.status_code, 422)
+
+
+class ChangePasswordAPIViewStructureAPIView(TestCase):
+    def setUp(self):
+        self.view = ChangePasswordAPIView
+
+    def test_it_has_serializer_class(self):
+        self.assertTrue(hasattr(self.view, 'serializer_class'))
+
+    def test_it_has_model(self):
+        self.assertTrue(hasattr(self.view, 'model'))
+
+    def test_it_has_permission_class(self):
+        self.assertTrue(hasattr(self.view, 'permission_classes'))
+
+    def test_it_has_update_method(self):
+        self.assertIn('update', self.view.__dict__)
+
+
+class ChangePasswordAPIViewTestCase(TestCase):
+    def setUp(self):
+        self.user = UserFactory()
+        self.client = APIClient()
+        self.refresh = RefreshToken.for_user(self.user)
+        self.client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(self.refresh.access_token))
+        self.url = reverse('change_password_api')
+        self.data= {
+            "new_password1": '12345678Aa',
+            "new_password2": '12345678Aa',
+            "old_password": 'secret'
+        }
+        self.password = self.user.password
+
+    def test_it_uses_change_password_serializer(self):
+        self.assertIs(ChangePasswordAPIView.serializer_class, ChangePasswordSerializer)
+
+    def test_it_returns_401_when_user_is_unauthenticated(self):
+        self.client.logout()
+        response = self.client.put(self.url, data={})
+        self.assertEquals(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_it_returns_422_invalid_data(self):
+        response = self.client.put(self.url, data={})
+        self.assertEqual(response.status_code, status.HTTP_422_UNPROCESSABLE_ENTITY)
+
+    def test_it_returns_200_on_update(self):
+        response = self.client.put(self.url, data=self.data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_it_updates_password(self):
+        self.client.put(self.url, data=self.data)
+        self.user.refresh_from_db()
+        self.assertNotEqual(self.user.password, self.password)
