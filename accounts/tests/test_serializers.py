@@ -2,9 +2,11 @@ from django.contrib.auth import password_validation
 from django.test import TestCase
 from django.utils.translation import gettext as _
 from rest_framework import serializers
+from django.test.client import RequestFactory
 
 from accounts.serializers import LogoutSerializer, RegisterSerializer, UpdateUserDataSerializer, UpdateEmailSerializer, \
-    UpdatePhoneNumberSerializer
+    UpdatePhoneNumberSerializer, ChangePasswordSerializer
+from accounts.tests.factories import UserFactory
 
 
 class RegistrationSerializerTestCase(TestCase):
@@ -166,3 +168,52 @@ class UpdatePhoneSerializerStructureTestCase(TestCase):
 
     def test_it_has_password_field(self):
         self.assertIn('password', self.serializer.fields)
+
+
+class ChangePasswordSerializerStructureTestCase(TestCase):
+    def setUp(self):
+        self.serializer = ChangePasswordSerializer()
+
+    def test_it_has_model_class_in_meta(self):
+        self.assertTrue(hasattr(self.serializer.Meta, 'model'))
+
+    def test_it_has_fields_in_meta(self):
+        self.assertTrue(hasattr(self.serializer.Meta, 'fields'))
+
+    def test_it_has_new_password1_field(self):
+        self.assertIn('new_password1', self.serializer.fields)
+
+    def test_it_has_new_password2_field(self):
+        self.assertIn('new_password2', self.serializer.fields)
+
+    def test_it_has_old_password_field(self):
+        self.assertIn('old_password', self.serializer.fields)
+
+    def test_it_has_form_attribute(self):
+        self.assertTrue(hasattr(self.serializer, 'form'))
+
+    def test_it_has_method_validate(self):
+        self.assertTrue(hasattr(self.serializer, 'validate'))
+
+    def test_it_has_method_save(self):
+        self.assertTrue(hasattr(self.serializer, 'save'))
+
+
+class ChangePasswordSerializerTestCase(TestCase):
+    def setUp(self):
+        self.request = RequestFactory()
+        self.user = UserFactory()
+        self.request.user = self.user
+        self.old_password = self.user.password
+        self.data = {
+            "new_password1": "12345678Aa",
+            "new_password2": "12345678Aa",
+            "old_password": "secret"
+        }
+
+    def test_it_change_password(self):
+        serializer = ChangePasswordSerializer(data=self.data, context={'request': self.request})
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        self.user.refresh_from_db()
+        self.assertNotEqual(self.old_password, self.user.password)

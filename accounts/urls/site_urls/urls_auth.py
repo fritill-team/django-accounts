@@ -1,7 +1,7 @@
 from django.contrib.auth import views as auth_views
 from django.urls import path, reverse_lazy
 
-from .views import LoginView, RegisterView, VerifyEmailView, EmailVerificationCompleteView, VerifyPhoneView, \
+from accounts.views import LoginView, RegisterView, VerifyEmailView, EmailVerificationCompleteView, VerifyPhoneView, \
     PhoneVerificationCompleteView, ChangeEmailView, PhoneUpdateView, \
     ResendPhoneConfirmationView, UpdateProfileInfoView, ResendEmailConfirmationLinkView
 

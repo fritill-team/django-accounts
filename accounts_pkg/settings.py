@@ -16,6 +16,10 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+AUTHENTICATION_BACKENDS = (
+    'accounts.backends.UsernameOrPhoneModelBackend',
+)
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -111,6 +115,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'tests.User'
 
+
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
@@ -129,6 +134,7 @@ REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
     'PAGE_SIZE': 10
 }
+
 
 REST_SESSION_LOGIN = True
 REST_USE_JWT = True

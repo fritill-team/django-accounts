@@ -43,7 +43,7 @@ class User(AbstractUser):
     objects = UserManager()
 
     EMAIL_FIELD = 'email'
-    USERNAME_FIELD = 'email'
+    USERNAME_FIELD = 'username'
     REQUIRED_FIELDS = ['phone']
 
     username_validator = UnicodeUsernameValidator()
