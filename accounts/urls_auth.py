@@ -44,10 +44,10 @@ urlpatterns = [
         template_name='accounts/password_reset_complete.html'
     ), name='password_reset_complete'),
 
-    path('email-change/', ChangeEmailView.as_view(), name='email-update'),
-    path('phone-change/', PhoneUpdateView.as_view(), name='phone-update'),
-
-    # update profile info
-    path('profile/', UpdateProfileInfoView.as_view(), name='update_profile'),
+    # path('email-change/', ChangeEmailView.as_view(), name='email-update'),
+    # path('phone-change/', PhoneUpdateView.as_view(), name='phone-update'),
+    #
+    # # update profile info
+    # path('profile/', UpdateProfileInfoView.as_view(), name='update_profile'),
 
 ]
