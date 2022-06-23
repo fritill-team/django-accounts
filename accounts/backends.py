@@ -5,11 +5,13 @@ UserModel = get_user_model()
 
 
 class UsernameOrPhoneModelBackend(ModelBackend):
-    def authenticate(self, request, username=None, phone=None, password=None, **kwargs):
+    def authenticate(self, request, email=None, username=None, phone=None, password=None, **kwargs):
         query = None
-
         if phone:
             query = {"phone": phone}
+
+        elif email:
+            query = {UserModel.EMAIL_FIELD: email}
 
         elif username:
             query = {UserModel.USERNAME_FIELD: username}

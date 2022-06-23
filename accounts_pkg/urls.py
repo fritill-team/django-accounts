@@ -18,8 +18,8 @@ from django.urls import path, include
 
 urlpatterns = [
     # add account profile
-    path('', include('accounts.urls_profile')),
-    path('', include('accounts.urls_auth')),
+    path('', include('accounts.urls.site_urls.urls_profile')),
+    path('', include('accounts.urls.site_urls.urls_auth')),
     # include api urls
     path('api/', include('accounts_pkg.api_urls')),
 ]
