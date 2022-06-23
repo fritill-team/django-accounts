@@ -7,6 +7,7 @@ from django.utils.timezone import now
 from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy as _
 from rest_framework import status
+from rest_framework.generics import UpdateAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -15,7 +16,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from accounts.forms import UpdateEmailForm, UpdatePhoneNumberForm
 from .forms import VerifyPhoneForm
 from .serializers import LogoutSerializer, PasswordResetSerializer, UpdateUserDataSerializer, RegisterSerializer, \
-    PhoneLoginSerializer
+    LoginSerializer, ChangePasswordSerializer
 from .utils import account_activation_token, send_mail_confirmation
 from .verify_phone import VerifyPhone
 
@@ -50,7 +51,7 @@ class LoginAPIView(APIView):
     permission_classes = []
 
     def post(self, request, *args, **kwargs):
-        serializer = PhoneLoginSerializer(data=request.data)
+        serializer = LoginSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.cache_user
             tokens = RefreshToken.for_user(user)
@@ -70,6 +71,20 @@ class UserLogoutAPIView(APIView):
             serializer.save()
             return Response(status=status.HTTP_204_NO_CONTENT)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ChangePasswordAPIView(UpdateAPIView):
+    serializer_class = ChangePasswordSerializer
+    model = UserModel
+    permission_classes = [IsAuthenticated]
+
+    def update(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data, context={'request': request})
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response(status=status.HTTP_200_OK, data={'msg': _("Password updated successfully")})
+        return Response(status=status.HTTP_422_UNPROCESSABLE_ENTITY, data=serializer.errors)
 
 
 class PasswordResetAPIView(APIView):

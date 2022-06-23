@@ -46,7 +46,7 @@ class RegisterForm(UserCreationForm):
 
 
 class PhoneLoginForm(forms.Form):
-    username = forms.EmailField(required=False)
+    username = forms.CharField(required=False)
     email = forms.EmailField(required=False)
     phone = forms.CharField(required=False)
     password = forms.CharField(
@@ -207,7 +207,7 @@ class UpdateEmailForm(forms.Form):
         password = self.cleaned_data.get('password')
 
         credentials = {"password": password}
-        credentials.update({UserModel.USERNAME_FIELD: username})
+        credentials.update({UserModel.EMAIL_FIELD: username})
 
         if not authenticate(**credentials):
             raise ValidationError(_("Please Enter Valid Password"), code="invalid")
