@@ -1,6 +1,9 @@
 ## installation
 
-1. in terminal, run `pip install dj-accounts`
+1. in terminal, run
+```
+pip install dj-accounts
+```
 2. in settings file add:
 
 ``` python 
