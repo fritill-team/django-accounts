@@ -17,7 +17,7 @@ DEBUG = True
 ALLOWED_HOSTS = []
 
 AUTHENTICATION_BACKENDS = (
-    'accounts.backends.UsernameOrPhoneModelBackend',
+    'accounts.backends.MultipleAuthenticationBackend',
 )
 
 # Application definition

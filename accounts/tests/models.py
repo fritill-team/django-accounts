@@ -42,9 +42,9 @@ class UserManager(BaseUserManager):
 class User(AbstractUser):
     objects = UserManager()
 
-    EMAIL_FIELD = 'email'
     USERNAME_FIELD = 'username'
-    REQUIRED_FIELDS = ['phone']
+    REQUIRED_FIELDS = []
+    AUTHENTICATION_FIELDS = ['email', 'username', 'phone', 'id']
 
     username_validator = UnicodeUsernameValidator()
     email_validator = EmailValidator()
