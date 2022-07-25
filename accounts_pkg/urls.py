@@ -1,25 +1,10 @@
-"""accounts_pkg URL Configuration
-
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/4.0/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
-"""
-from django.contrib import admin
 from django.urls import path, include
 
 urlpatterns = [
     # add account profile
-    path('', include('accounts.urls.site_urls.urls_profile')),
-    path('', include('accounts.urls.site_urls.urls_auth')),
+    path('', include('dj_accounts.urls.site_urls.urls_profile')),
+    path('', include('dj_accounts.urls.site_urls.urls_auth')),
     # include api urls
-    path('api/', include('accounts_pkg.api_urls')),
+    path('api/', include('dj_accounts.urls.api_urls.urls_auth_api')),
+    path('api/', include('dj_accounts.urls.api_urls.urls_profile_api')),
 ]

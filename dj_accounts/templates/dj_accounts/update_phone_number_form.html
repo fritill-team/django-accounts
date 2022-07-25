@@ -1,0 +1,14 @@
+{% extends 'dj_accounts/profile_base.html' %}
+{% load static i18n %}
+
+{% block page_title %}
+  {% translate 'Update Phone number' %}
+{% endblock %}
+
+{% block content %}
+  <form method="POST">
+    {% csrf_token %}
+    {{ form }}
+    <button type="submit">{% translate 'Submit' %}</button>
+  </form>
+{% endblock %}

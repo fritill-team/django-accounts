@@ -1,0 +1,23 @@
+{% extends 'dj_accounts/auth_base.html' %}
+
+{% block page_title %}
+  Register
+{% endblock %}
+
+{% block content %}
+  <h1>Register</h1>
+
+  <form action="{% url 'register' %}" method="post">
+    {% csrf_token %}
+
+    {% if form.non_field_errors %}
+      {% for key, value in form.non_field_errors.items %}
+        {{ value }}
+      {% endfor %}
+    {% endif %}
+
+    {{ form.as_ul }}
+
+    <button type="submit">Register</button>
+  </form>
+{% endblock %}
