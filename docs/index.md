@@ -10,6 +10,7 @@ pip install dj-accounts
     INSTALLED_APPS = (
         ...
         'accounts',
+        'rest_framework_simplejwt.token_blacklist',
         ...
     )
 ```
@@ -53,11 +54,11 @@ if you want to enable phone authentication you can add the following to your set
 ```python
 ...
 AUTHENTICATION_BACKENDS = (
-    'accounts.backends.UsernameOrPhoneModelBackend',
+    'accounts.backends.MultipleAuthenticationBackend',
     # ...
 )
 ...
-PHONE_AUTHENTICATION_ACTIVE = True
+MULTIPLE_AUTHENTICATION_ACTIVE = True
 ...
 ```
 

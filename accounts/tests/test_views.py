@@ -17,7 +17,7 @@ from django.utils.translation import gettext_lazy as _
 from django.views import View
 
 from .factories import UserFactory
-from ..forms import PhoneLoginForm, RegisterForm, UserCreationForm, UpdateUserDataForm
+from ..forms import MultipleLoginForm, RegisterForm, UserCreationForm, UpdateUserDataForm
 from ..utils import account_activation_token
 from ..views import LoginView, RegisterView, VerifyPhoneView, PhoneVerificationCompleteView, VerifyEmailView, \
     EmailVerificationCompleteView, UpdateProfileInfoView, PhoneUpdateView, ResendEmailConfirmationLinkView, \
@@ -54,14 +54,14 @@ class LoginViewStructureTestCase(TestCase):
 
 
 class LoginViewGetFormClassTestCase(TestCase):
-    @override_settings(PHONE_AUTHENTICATION_ACTIVE=False)
-    def test_it_returns_default_login_form_if_phone_authentication_active_is_false_and_authentication_form_is_none(
+    @override_settings(MULTIPLE_AUTHENTICATION_ACTIVE=False)
+    def test_it_returns_default_login_form_if_MULTIPLE_AUTHENTICATION_ACTIVE_is_false_and_authentication_form_is_none(
             self):
         self.assertTrue(issubclass(LoginView().get_form_class(), AuthenticationForm))
 
-    @override_settings(PHONE_AUTHENTICATION_ACTIVE=True)
-    def test_it_returns_phone_login_form_if_phone_authentication_active_is_true(self):
-        self.assertTrue(issubclass(LoginView().get_form_class(), PhoneLoginForm))
+    @override_settings(MULTIPLE_AUTHENTICATION_ACTIVE=True)
+    def test_it_returns_phone_login_form_if_MULTIPLE_AUTHENTICATION_ACTIVE_is_true(self):
+        self.assertTrue(issubclass(LoginView().get_form_class(), MultipleLoginForm))
 
     @override_settings(LOGIN_FORM=TestLoginForm)
     def test_it_returns_settings_login_form_if_is_set(self):

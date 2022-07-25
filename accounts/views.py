@@ -16,7 +16,7 @@ from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy as _
 from django.views import View
 
-from .forms import PhoneLoginForm, VerifyPhoneForm
+from .forms import MultipleLoginForm, VerifyPhoneForm
 from .forms import UpdatePhoneNumberForm, UpdateEmailForm, UserChangeForm
 from .utils import account_activation_token, send_mail_confirmation
 from .verify_phone import VerifyPhone
@@ -91,8 +91,8 @@ class LoginView(BaseLoginView):
     redirect_authenticated_user = True
 
     def get_form_class(self):
-        if getattr(settings, 'PHONE_AUTHENTICATION_ACTIVE', False):
-            return PhoneLoginForm
+        if getattr(settings, 'MULTIPLE_AUTHENTICATION_ACTIVE', False):
+            return MultipleLoginForm
         return getattr(settings, 'LOGIN_FORM', AuthenticationForm)
 
 

@@ -3,7 +3,7 @@ from django.test import TestCase, override_settings, Client
 from .factories import UserFactory
 
 
-class UsernameOrPhoneModelBackendTestCase(TestCase):
+class MultipleAuthenticationBackendTestCase(TestCase):
     def setUp(self):
         self.client = Client()
         self.user = UserFactory()

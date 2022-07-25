@@ -43,7 +43,8 @@ class User(AbstractUser):
     objects = UserManager()
 
     USERNAME_FIELD = 'username'
-    REQUIRED_FIELDS = []
+    EMAIL_FIELD = 'email'
+    REQUIRED_FIELDS = ['phone']
     AUTHENTICATION_FIELDS = ['email', 'username', 'phone', 'id']
 
     username_validator = UnicodeUsernameValidator()
@@ -56,7 +57,7 @@ class User(AbstractUser):
 
     username = models.CharField(_('username'), max_length=150,
                                 help_text=_('Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only.'),
-                                validators=[username_validator])
+                                validators=[username_validator], unique=True)
     phone = models.CharField(
         max_length=50,
         blank=False,

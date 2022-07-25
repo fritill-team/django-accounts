@@ -145,19 +145,9 @@ REST_AUTH_SERIALIZERS = {
     "PASSWORD_RESET_SERIALIZER": "apps.users.auth.serializers.PasswordResetSerializer"
 }
 
-MULTIPLE_AUTHENTICATION_ACTIVE = False
-# default JWT settings
-# ACCESS_TOKEN_LIFETIME = timedelta(minutes=30)
-# REFRESH_TOKEN_LIFETIME = timedelta(days=1)
-# ROTATE_REFRESH_TOKENS = False
-# BLACKLIST_AFTER_ROTATION = True
-# VERIFYING_KEY = None
-# AUDIENCE = None
-# ISSUER = None
-# AUTH_HEADER_TYPES = ('Bearer',)
-# AUTH_TOKEN_CLASSES = ('rest_framework_simplejwt.tokens.AccessToken',)
-# TOKEN_TYPE_CLAIM = 'token_type'
-# JTI_CLAIM = 'jti',
-# SLIDING_TOKEN_REFRESH_EXP_CLAIM = 'refresh_exp'
-# SLIDING_TOKEN_LIFETIME = timedelta(minutes=5)
-# SLIDING_TOKEN_REFRESH_LIFETIME = timedelta(days=1)
+MULTIPLE_AUTHENTICATION_ACTIVE = True
+SIMPLE_JWT = {
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=15),
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': True
+}
