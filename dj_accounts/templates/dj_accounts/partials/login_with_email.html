@@ -1,0 +1,33 @@
+{% load i18n %}
+<form action="{% url 'login' %}" class="py-3" method="post">
+  {% if form.errors %}
+  <div class="alert alert-danger alert-dismissible">
+    <h5><i class="icon fas fa-ban"></i>{% translate 'Alert!' %}</h5>
+    {% for key, value in form.errors.items %}
+    {{ value }}
+    {% endfor %}
+  </div>
+  {% endif %}
+
+
+  {% csrf_token %}
+  <input name="next" type="hidden" value="{{ next }}">
+  {% include 'dj_accounts/partials/fields/username.html' %}
+  {% include 'dj_accounts/partials/fields/password.html' %}
+
+  <div class="row">
+    <div class="col-8">
+      <div class="icheck-primary">
+        <input id="email-remember" name="remember_me" type="checkbox">
+        <label for="email-remember">
+          {% translate 'Remember Me' %}
+        </label>
+      </div>
+    </div>
+    <div class="col-4">
+      <button class="btn btn-primary btn-block" type="submit">{% translate 'Login' %}</button>
+    </div>
+  </div>
+</form>
+
+

@@ -1,0 +1,25 @@
+{% load i18n %}
+<ul class="nav nav-tabs" id="custom-content-below-tab" role="tablist">
+  <li class="nav-item">
+    <a aria-controls="login-with-email" aria-selected="true" class="nav-link active" data-toggle="pill"
+       href="#login-with-email" id="login-with-email-tab" role="tab">
+      {% translate 'Login With Email' %}
+    </a>
+  </li>
+  <li class="nav-item">
+    <a aria-controls="login-with-phone" aria-selected="false" class="nav-link" data-toggle="pill"
+       href="#login-with-phone" id="login-with-phone-tab" role="tab">
+      {% translate 'Login With Phone' %}
+    </a>
+  </li>
+</ul>
+<div class="tab-content" id="custom-content-below-tabContent">
+  <div aria-labelledby="login-with-email-tab" class="tab-pane fade show active" id="login-with-email"
+       role="tabpanel">
+    {% include 'dj_accounts/partials/login_with_email.html' %}
+  </div>
+  <div aria-labelledby="login-with-phone-tab" class="tab-pane fade" id="login-with-phone"
+       role="tabpanel">
+    {% include 'dj_accounts/partials/login_with_phone.html' %}
+  </div>
+</div>
