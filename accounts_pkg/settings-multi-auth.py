@@ -17,7 +17,7 @@ DEBUG = True
 ALLOWED_HOSTS = []
 
 AUTHENTICATION_BACKENDS = (
-    'dj_dj_accounts.backends.MultipleAuthenticationBackend',
+    'dj_accounts.backends.MultipleAuthenticationBackend',
 )
 
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
