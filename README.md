@@ -10,7 +10,7 @@ pip install dj-accounts
 INSTALLED_APPS = [
     ...,
 
-    'accounts',
+    'dj_accounts',
 ]
 ```
 
