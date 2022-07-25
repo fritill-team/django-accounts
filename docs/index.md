@@ -100,3 +100,33 @@ if you want to use your own registration form you can add the following to your 
 REGISTER_FORM = 'path.to.the.form.RegisterForm'
 ...
 ```
+
+### Change Profile Serializer:
+
+if you want to use your own profile serializer to update profile data you can add the following to your settings file:
+
+```python
+...
+PROFILE_SERIALIZER = 'path.to.the.form.PROFILE_SERIALIZER'
+...
+```
+
+### Update Email Form:
+
+if you want to use your own update email form you can add the following to your settings file:
+
+```python
+...
+UPDATE_EMAIL_FORM = 'path.to.the.form.UPDATE_EMAIL_FORM'
+...
+```
+
+### Update Phone Form:
+
+if you want to use your own update phone form you can add the following to your settings file:
+
+```python
+...
+UPDATE_PHONE_FORM = 'path.to.the.form.UPDATE_PHONE_FORM'
+...
+```
