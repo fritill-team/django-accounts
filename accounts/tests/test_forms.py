@@ -7,7 +7,7 @@ from django.test import override_settings
 from django.utils.timezone import now
 from django.utils.translation import gettext_lazy as _
 
-from accounts.forms import PhoneLoginForm, RegisterForm, VerifyPhoneForm
+from accounts.forms import MultipleLoginForm, RegisterForm, VerifyPhoneForm
 from accounts.forms import UpdateUserDataForm, UpdateEmailForm, UpdatePhoneNumberForm
 from .factories import UserFactory
 
@@ -134,13 +134,13 @@ class RegisterFormValidationTest(TestCase):
         self.assertEquals(form.errors.as_data()["password2"][0].code, 'password_mismatch')
 
 
-class PhoneLoginFormStructureTestCase(TestCase):
+class MultipleLoginFormStructureTestCase(TestCase):
     def setUp(self):
         self.request = RequestFactory()
-        self.form = PhoneLoginForm(request=self.request)
+        self.form = MultipleLoginForm(request=self.request)
 
-    def test_it_extends_django_Form(self):
-        self.assertTrue(issubclass(PhoneLoginForm, forms.Form))
+    def test_it_extends_django_model_form(self):
+        self.assertTrue(issubclass(MultipleLoginForm, forms.ModelForm))
 
     def test_it_has_cached_user(self):
         self.assertTrue(hasattr(self.form, 'user_cache'))
@@ -150,18 +150,6 @@ class PhoneLoginFormStructureTestCase(TestCase):
 
     def test_get_user_method_returns_cache_user_value(self):
         self.assertEquals(self.form.user_cache, self.form.get_user())
-
-    def test_it_has_username_field(self):
-        self.assertIn('username', self.form.fields)
-
-    def test_username_field_is_instance_of_email_field(self):
-        self.assertIsInstance(self.form.fields['username'], forms.EmailField)
-
-    def test_it_has_phone_field(self):
-        self.assertIn('phone', self.form.fields)
-
-    def test_phone_field_is_instance_of_char_field(self):
-        self.assertIsInstance(self.form.fields['phone'], forms.CharField)
 
     def test_it_has_password_field(self):
         self.assertIn('password', self.form.fields)
@@ -173,7 +161,7 @@ class PhoneLoginFormStructureTestCase(TestCase):
         self.assertEquals(self.form.fields['password'].label, _('Password'))
 
     def test_password_field_not_striping_its_value(self):
-        form = PhoneLoginForm()
+        form = MultipleLoginForm()
         self.assertFalse(self.form.fields['password'].strip)
 
     def test_password_widget_is_instance_of_passwordInput(self):
@@ -192,34 +180,34 @@ class PhoneLoginFormStructureTestCase(TestCase):
         self.assertEquals(self.form.fields['remember_me'].initial, False)
 
 
-class PhoneLoginFormValidationTestCase(TestCase):
-
+class MultipleLoginFormValidationTestCase(TestCase):
+    @override_settings(AUTHENTICATION_BACKENDS=["accounts.backends.MultipleAuthenticationBackend"])
     def setUp(self):
         self.request = RequestFactory().get('/')
         middleware = SessionMiddleware()
         middleware.process_request(self.request)
         self.request.session.save()
         self.user = UserFactory()
-        self.Form = PhoneLoginForm
+        self.Form = MultipleLoginForm
         self.user.phone = "01102158610"
         self.user.save()
         self.DEFAULT_DATA = {
-            "username": self.user.email,
+            "email": self.user.email,
             "phone": self.user.phone,
             "password": "secret",
             "remember_me": True
         }
 
-    def test_it_fails_if_both_phone_and_user_name_are_not_exist(self):
+    def test_it_fails_if_both_phone_and_email_are_not_provided(self):
         self.DEFAULT_DATA.pop('phone')
-        self.DEFAULT_DATA.pop('username')
+        self.DEFAULT_DATA.pop('email')
         form = self.Form(request=self.request, data=self.DEFAULT_DATA)
         self.assertFalse(form.is_valid())
-        self.assertEquals('phone_or_username_are_required', form.errors.as_data()['__all__'][0].code)
+        self.assertEquals('invalid_credentials', form.errors.as_data()['__all__'][0].code)
         self.assertEquals(_("Please enter a correct credentials"), form.errors.as_data()['__all__'][0].message)
 
-    def test_password_is_required(self):
-        check_required(self, 'password')
+    # def test_password_is_required(self):
+    #     check_required(self, 'password')
 
     def test_it_fails_if_password_is_not_correct(self):
         self.DEFAULT_DATA.update({"password": "12345"})
@@ -231,9 +219,9 @@ class PhoneLoginFormValidationTestCase(TestCase):
             "fields may be case-sensitive."
         ), form.errors.as_data()['__all__'][0].message)
 
-    def test_it_fails_if_username_is_not_correct(self):
+    def test_it_fails_if_email_is_not_correct(self):
         self.DEFAULT_DATA.pop('phone')
-        self.DEFAULT_DATA.update({"username": "aaa@lll.ccc"})
+        self.DEFAULT_DATA.update({"email": "aaa@lll.ccc"})
         form = self.Form(request=self.request, data=self.DEFAULT_DATA)
         self.assertFalse(form.is_valid())
         self.assertEquals('invalid_login', form.errors.as_data()['__all__'][0].code)
@@ -243,7 +231,7 @@ class PhoneLoginFormValidationTestCase(TestCase):
         ), form.errors.as_data()['__all__'][0].message)
 
     def test_it_fails_if_phone_is_not_correct(self):
-        self.DEFAULT_DATA.pop('username')
+        self.DEFAULT_DATA.pop('email')
         self.DEFAULT_DATA.update({"phone": "56415615"})
         form = self.Form(request=self.request, data=self.DEFAULT_DATA)
         self.assertFalse(form.is_valid())
@@ -253,11 +241,11 @@ class PhoneLoginFormValidationTestCase(TestCase):
             "fields may be case-sensitive."
         ), form.errors.as_data()['__all__'][0].message)
 
-    @override_settings(AUTHENTICATION_BACKENDS=["accounts.backends.UsernameOrPhoneModelBackend"])
+
     def test_it_authenticates_correct_user_by_phone(self):
-        self.DEFAULT_DATA.pop('username')
+        self.DEFAULT_DATA.pop('email')
         form = self.Form(request=self.request, data=self.DEFAULT_DATA)
-        f = form.is_valid()
+        form.is_valid()
         self.assertTrue(form.is_valid())
 
     def test_it_authenticates_correct_user_by_username(self):
@@ -275,6 +263,7 @@ class PhoneLoginFormValidationTestCase(TestCase):
         self.DEFAULT_DATA.pop('phone')
         form = self.Form(request=self.request, data=self.DEFAULT_DATA)
         form.is_valid()
+        print(form.errors)
         self.assertEquals(form.get_user(), self.user)
 
     def test_it_sets_session_expiry_to_zero_if_remember_me_is_false(self):

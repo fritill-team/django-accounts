@@ -45,12 +45,10 @@ class RegisterForm(UserCreationForm):
         return email
 
 
-class PhoneLoginForm(forms.Form):
-    username = forms.CharField(required=False)
-    email = forms.EmailField(required=False)
-    phone = forms.CharField(required=False)
+class MultipleLoginForm(forms.ModelForm):
     password = forms.CharField(
         label=_("Password"),
+        required=True,
         strip=False,
         widget=forms.PasswordInput(attrs={'autocomplete': 'current-password'}),
     )
@@ -66,52 +64,43 @@ class PhoneLoginForm(forms.Form):
             "fields may be case-sensitive."
         ),
         'inactive': _("This account is inactive."),
-        "phone_or_username_are_required": _("Please enter a correct credentials"),
+        "invalid_credentials": _("Please enter a correct credentials"),
     }
+
+    class Meta:
+        model = UserModel
+        fields = [*UserModel.AUTHENTICATION_FIELDS]
 
     def __init__(self, request=None, *args, **kwargs):
         self.request = request
         self.user_cache = None
-        super(PhoneLoginForm, self).__init__(*args, **kwargs)
-        self.username_field = UserModel._meta.get_field(UserModel.USERNAME_FIELD)
+        super(MultipleLoginForm, self).__init__(*args, **kwargs)
+        for field in self.fields:
+            self.fields[field].required = False
 
     def get_user(self):
         return self.user_cache
 
     def clean(self):
-        username = self.cleaned_data.get('username')
-        email = self.cleaned_data.get('email')
-        phone = self.cleaned_data.get('phone')
-        password = self.cleaned_data.get('password')
-        remember_me = self.cleaned_data.get('remember_me')
-        login_by = None
+        password = self.cleaned_data.pop('password')
+        remember_me = self.cleaned_data.pop('remember_me')
 
-        if not phone and not username and not email:
+        login_by = next((key for key in list(self.cleaned_data.keys()) if self.cleaned_data[key]), None)
+
+        if login_by not in UserModel.AUTHENTICATION_FIELDS:
             raise ValidationError(
-                self.error_messages['phone_or_username_are_required'],
-                code='phone_or_username_are_required')
+                self.error_messages['invalid_credentials'],
+                code='invalid_credentials')
 
         credentials = {"password": password}
 
-        if phone:
-            login_by = phone
-            credentials.update({"phone": phone})
-
-        elif email:
-            login_by = email
-            credentials.update({"email": email})
-
-        else:
-            login_by = username
-            credentials.update({UserModel.USERNAME_FIELD: username})
-
+        credentials.update({login_by: self.cleaned_data[login_by]})
         if login_by and password:
             self.user_cache = authenticate(request=self.request, **credentials)
             if not self.user_cache:
                 raise ValidationError(
                     self.error_messages['invalid_login'],
-                    code='invalid_login',
-                    params={'phone': UserModel._meta.get_field('phone').verbose_name})
+                    code='invalid_login')
             if not remember_me and self.request:
                 self.request.session.set_expiry(0)
                 self.request.session.modified = True

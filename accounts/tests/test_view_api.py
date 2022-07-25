@@ -36,36 +36,36 @@ class LoginAPIViewTestCase(TestCase):
             "password": "secret"
         }
 
-    @override_settings(PHONE_AUTHENTICATION_ACTIVE=True)
+    @override_settings(MULTIPLE_AUTHENTICATION_ACTIVE=True)
     def test_it_uses_email_and_password_for_successful_login(self):
         self.data.pop("phone")
         self.data.pop("username")
         response = self.client.post(self.url, self.data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    @override_settings(PHONE_AUTHENTICATION_ACTIVE=True)
+    @override_settings(MULTIPLE_AUTHENTICATION_ACTIVE=True)
     def test_it_uses_username_and_password_for_successful_login(self):
         self.data.pop("phone")
         self.data.pop("email")
         response = self.client.post(self.url, self.data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    @override_settings(PHONE_AUTHENTICATION_ACTIVE=True,
-                       AUTHENTICATION_BACKENDS=["accounts.backends.UsernameOrPhoneModelBackend"])
+    @override_settings(MULTIPLE_AUTHENTICATION_ACTIVE=True,
+                       AUTHENTICATION_BACKENDS=["accounts.backends.MultipleAuthenticationBackend"])
     def test_it_uses_phone_and_password_for_successful_login(self):
         self.data.pop("email")
         self.data.pop("username")
         response = self.client.post(self.url, self.data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    @override_settings(PHONE_AUTHENTICATION_ACTIVE=True)
+    @override_settings(MULTIPLE_AUTHENTICATION_ACTIVE=True)
     def test_it_returns_access_token_key_in_response(self):
         self.data.pop("phone")
         self.data.pop("username")
         response = self.client.post(self.url, self.data)
         self.assertIn("access_token", response.data)
 
-    @override_settings(PHONE_AUTHENTICATION_ACTIVE=True)
+    @override_settings(MULTIPLE_AUTHENTICATION_ACTIVE=True)
     def test_it_returns_refresh_token_key_in_response(self):
         self.data.pop("phone")
         self.data.pop("username")
@@ -155,7 +155,7 @@ class TestUserLogoutViewStructure(TestCase):
 
 
 class TestUserLogoutView(TestCase):
-    @override_settings(PHONE_AUTHENTICATION_ACTIVE=True)
+    @override_settings(MULTIPLE_AUTHENTICATION_ACTIVE=True)
     def setUp(self):
         self.url = reverse('login_api')
         self.user = UserFactory()
