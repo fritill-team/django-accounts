@@ -20,7 +20,7 @@ TWILIO_AUTH_TOKEN = 'your_auth_token'
 
 3. create custom service for twilio
 ```python
-from accounts.verify_phone import VerifyPhoneServiceAbstract
+from dj_accounts.verify_phone import VerifyPhoneServiceAbstract
 from django.conf import settings
 from twilio.base.exceptions import TwilioRestException
 from twilio.rest import Client
