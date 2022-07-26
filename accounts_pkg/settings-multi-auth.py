@@ -140,11 +140,6 @@ REST_USE_JWT = True
 JWT_AUTH_COOKIE = 'jwt_access_token'
 JWT_AUTH_REFRESH_COOKIE = 'jwt_refresh_token'
 OLD_PASSWORD_FIELD_ENABLED = True
-
-REST_AUTH_SERIALIZERS = {
-    "PASSWORD_RESET_SERIALIZER": "apps.users.auth.serializers.PasswordResetSerializer"
-}
-
 MULTIPLE_AUTHENTICATION_ACTIVE = True
 SIMPLE_JWT = {
     'REFRESH_TOKEN_LIFETIME': timedelta(days=15),

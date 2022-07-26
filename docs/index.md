@@ -9,47 +9,49 @@ pip install dj-accounts
 ``` python 
     INSTALLED_APPS = (
         ...
-        'accounts',
+        'dj_accounts',
         'rest_framework_simplejwt.token_blacklist',
         ...
     )
 ```
+3. add this lines to you user model to get multiple authentication:
+
 
 ## usage
 
 django accounts provides various user management features for authentication and user profile management.
 
-* Authentication urls are provided in the `accounts.urls_auth` file, in urls file add:
+* Authentication urls are provided in the `dj_accounts.urls.site_urls.urls_auth` file, in urls file add:
 ```python
 urlpatterns = [
-    path('', include('accounts.urls_auth')),
+    path('', include('dj_accounts.urls.site_urls.urls_auth')),
 ]
 ```
 
-* Authentication API urls are provided in `accounts.urls_auth_api` file, in urls file add:
+* Authentication API urls are provided in `dj_accounts.urls.urls_auth_api` file, in urls file add:
 ```python
 urlpatterns = [
-   path('', include('accounts.urls_auth_api')),
+   path('', include('dj_accounts.urls.api_urls.urls_auth_api')),
 ]
 ```
 
-* Profile Management urls are provided in `accounts.urls_profile` file, in urls file add:
+* Profile Management urls are provided in `dj_accounts.urls.site_urls.urls_profile` file, in urls file add:
 ```python
 urlpatterns = [
-   path('', include('accounts.urls_profile')),
+    path('', include('dj_accounts.urls.site_urls.urls_profile')),
 ]
 ```
 
-* Profile Management API urls are provided in `accounts.urls_profile` file, in urls file add:
+* Profile Management API urls are provided in `dj_accounts.urls.api_urls.urls_profile_api` file, in urls file add:
 ```python
 urlpatterns = [
-   path('', include('accounts.urls_profile_api')),
+   path('', include('dj_accounts.urls.api_urls.urls_profile_api')),
 ]
 ```
 
-### Enable Phone Authentication:
+### Enable Multiple Authentication:
 
-if you want to enable phone authentication you can add the following to your settings file:
+if you want to enable multiple authentication you can add the following to your settings file:
 
 ```python
 ...
@@ -62,8 +64,11 @@ MULTIPLE_AUTHENTICATION_ACTIVE = True
 ...
 ```
 
+this will allow you to authenticate with username, phone and email 
+
 in your model you should add the following line:
 ```python
+AUTHENTICATION_FIELDS = ['username', 'email', ...]
 
 email = models.EmailField(_('email address'),
                           validators=[email_validator],
@@ -79,6 +84,17 @@ phone = models.CharField(
 
 phone_verified_at = models.DateTimeField(blank=True, null=True)
 
+username = models.CharField(
+    _('username'),
+    max_length=150,
+    unique=True,
+    help_text=_('Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only.'),
+    validators=[username_validator],
+    error_messages={
+        'unique': _("A user with that username already exists."),
+    },
+)
+
 ```
 
 
@@ -86,11 +102,12 @@ if you want to enable phone verification you can add the following to your setti
 
 ```python
 ENABLE_PHONE_VERIFICATION_ACTIVE = True
-PHONE_VERIFY_SERVICE = 'accounts.tests.mocks.TestingVerifyService'
+PHONE_VERIFY_SERVICE = 'dj_accounts.tests.mocks.TestingVerifyService'
 ```
 
 you can find the implementation guide for phone verification here.
 
+## Overrides
 ### Change Registration Form:
 
 if you want to use your own registration form you can add the following to your settings file:
