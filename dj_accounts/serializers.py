@@ -1,6 +1,5 @@
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.contrib.auth import password_validation
 from django.contrib.auth.forms import PasswordResetForm, AuthenticationForm, PasswordChangeForm
 from django.contrib.auth.password_validation import validate_password
 from django.utils.translation import gettext as _
@@ -46,30 +45,46 @@ class LogoutSerializer(serializers.Serializer):
 
 
 class RegisterSerializer(serializers.ModelSerializer):
-    username = serializers.CharField(
-        required=True,
-        max_length=100, help_text=_("Required, please provide your username"))
+    # username = serializers.CharField(
+    #     required=True,
+    #     max_length=100, help_text=_("Required, please provide your username"))
+    #
+    # email = serializers.EmailField(
+    #     required=True,
+    #     max_length=100, help_text=_("Required, please provide your email"))
+    #
+    # phone = serializers.CharField(
+    #     required=True,
+    #     max_length=100, help_text=_("Required, please provide your phone number"))
 
-    email = serializers.EmailField(
-        required=True,
-        max_length=100, help_text=_("Required, please provide your email"))
+    # password1 = serializers.CharField(
+    #     required=True,
+    #
+    #     help_text=password_validation.password_validators_help_text_html())
+    #
+    # password2 = serializers.CharField(
+    #     required=True,
+    #     help_text=_("Enter the same password as before, for verification."))
 
-    phone = serializers.CharField(
-        required=True,
-        max_length=100, help_text=_("Required, please provide your phone number"))
-
-    password1 = serializers.CharField(
-        required=True,
-
-        help_text=password_validation.password_validators_help_text_html())
-
-    password2 = serializers.CharField(
-        required=True,
-        help_text=_("Enter the same password as before, for verification."))
+    def get_form_class(self):
+        form_class = getattr(settings, "REGISTER_FORM", 'dj_accounts.forms.UserCreationForm')
+        if type(form_class) is str:
+            form_class_split = form_class.split('.')
+            class_name = form_class_split[-1:][0]
+            module_name = form_class_split[:-1]
+            import importlib
+            return getattr(importlib.import_module('.'.join(module_name)), class_name)
+        else:
+            return form_class
 
     class Meta:
         model = UserModel
-        fields = ['username', 'email', 'password1', 'password2', 'phone']
+        fields = []
+
+    def __init__(self, *args, **kwargs):
+        self.Meta.fields = self.get_form_class().Meta.fields
+        super(RegisterSerializer, self).__init__(*args, **kwargs)
+
 
     def validate(self, attrs):
         form = RegisterForm(data=attrs)

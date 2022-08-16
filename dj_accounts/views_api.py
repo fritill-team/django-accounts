@@ -1,3 +1,5 @@
+import importlib
+
 from .forms import UpdateEmailForm, UpdatePhoneNumberForm
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -24,26 +26,34 @@ UserModel = get_user_model()
 
 
 class UserSignupAPIView(APIView):
-    access_token = None
-    refresh_token = None
-    token = None
-    user = None
-    authentication_classes = []
-    permission_classes = []
+    def get_form_class(self):
+        form_class = getattr(settings, "REGISTER_FORM", 'dj_accounts.forms.UserCreationForm')
+        if type(form_class) is str:
+            form_class_split = form_class.split('.')
+            class_name = form_class_split[-1:][0]
+            module_name = form_class_split[:-1]
+            return getattr(importlib.import_module('.'.join(module_name)), class_name)
+        else:
+            return form_class
 
     def post(self, request, *args, **kwargs):
-        serializer = RegisterSerializer(data=request.data)
-        if serializer.is_valid():
-            self.user = serializer.save()
-            send_mail_confirmation(request, self.user)
-            VerifyPhone().send(self.user.phone)
+        form = self.get_form_class()(data=request.data)
+        if form.is_valid():
+            self.user = form.save()
+            print(self.user)
+            try:
+                send_mail_confirmation(request, self.user)
+                VerifyPhone().send(self.user.phone)
+            except Exception as e:
+                print(e)
             refresh = RefreshToken.for_user(self.user)
+
             return Response({
                 "access_token": str(refresh.access_token),
                 "refresh_token": str(refresh)
             }, status=status.HTTP_201_CREATED)
 
-        return Response(serializer.errors, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
+        return Response(form.errors, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
 
 
 class LoginAPIView(APIView):
