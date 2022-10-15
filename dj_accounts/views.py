@@ -1,4 +1,6 @@
 import importlib
+import traceback
+import sys
 from pyexpat.errors import messages
 
 from django.conf import settings
@@ -122,8 +124,23 @@ class RegisterView(View):
         if form.is_valid():
             user = form.save()
             login(self.request, user)
-            send_mail_confirmation(request, user)
-            VerifyPhone().send(user.phone)
+
+            try:
+                send_mail_confirmation(request, user)
+            except Exception as e:
+                parts = ["Traceback (most recent call last):\n"]
+                parts.extend(traceback.format_stack(limit=25)[:-2])
+                parts.extend(traceback.format_exception(*sys.exc_info())[1:])
+                print("".join(parts))
+
+            try:
+                VerifyPhone().send(user.phone)
+            except Exception as e:
+                parts = ["Traceback (most recent call last):\n"]
+                parts.extend(traceback.format_stack(limit=25)[:-2])
+                parts.extend(traceback.format_exception(*sys.exc_info())[1:])
+                print("".join(parts))
+
             if 'next' in request.POST:
                 return redirect(request.POST.get('next'))
             return redirect(settings.LOGIN_REDIRECT_URL)

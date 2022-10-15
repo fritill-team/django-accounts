@@ -1,3 +1,6 @@
+import traceback
+import sys
+
 from .forms import UpdateEmailForm, UpdatePhoneNumberForm
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -35,8 +38,23 @@ class UserSignupAPIView(APIView):
         serializer = RegisterSerializer(data=request.data)
         if serializer.is_valid():
             self.user = serializer.save()
-            send_mail_confirmation(request, self.user)
-            VerifyPhone().send(self.user.phone)
+
+            try:
+                send_mail_confirmation(request, self.user)
+            except Exception as e:
+                parts = ["Traceback (most recent call last):\n"]
+                parts.extend(traceback.format_stack(limit=25)[:-2])
+                parts.extend(traceback.format_exception(*sys.exc_info())[1:])
+                print("".join(parts))
+
+            try:
+                VerifyPhone().send(self.user.phone)
+            except Exception as e:
+                parts = ["Traceback (most recent call last):\n"]
+                parts.extend(traceback.format_stack(limit=25)[:-2])
+                parts.extend(traceback.format_exception(*sys.exc_info())[1:])
+                print("".join(parts))
+
             refresh = RefreshToken.for_user(self.user)
             return Response({
                 "access_token": str(refresh.access_token),
