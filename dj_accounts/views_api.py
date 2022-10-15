@@ -1,7 +1,6 @@
-import traceback
 import sys
+import traceback
 
-from .forms import UpdateEmailForm, UpdatePhoneNumberForm
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import default_token_generator
@@ -17,6 +16,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 
+from .forms import UpdateEmailForm, UpdatePhoneNumberForm
 from .forms import VerifyPhoneForm
 from .serializers import LogoutSerializer, PasswordResetSerializer, UpdateUserDataSerializer, RegisterSerializer, \
     LoginSerializer, ChangePasswordSerializer
@@ -138,8 +138,6 @@ class PasswordResetAPIView(APIView):
         return Response(serializer.errors, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
 
 
-# phone verification
-
 class VerifyPhoneAPIView(APIView):
     permission_classes = [IsAuthenticated, ]
 
@@ -159,14 +157,28 @@ class ResendPhoneConfirmationAPIView(APIView):
     permission_classes = (IsAuthenticated,)
 
     def get(self, request, *args, **kwargs):
-        VerifyPhone().send(request.user.phone)
+        try:
+            VerifyPhone().send(request.user.phone)
+        except Exception as e:
+            parts = ["Traceback (most recent call last):\n"]
+            parts.extend(traceback.format_stack(limit=25)[:-2])
+            parts.extend(traceback.format_exception(*sys.exc_info())[1:])
+            print("".join(parts))
+
         return Response({"message": _('Code was resent successfully.')}, status=status.HTTP_200_OK)
 
 
 # email verification
 class ResendEmailConfirmationLinkAPIView(APIView):
     def get(self, request, *args, **kwargs):
-        send_mail_confirmation(request, request.user)
+        try:
+            send_mail_confirmation(request, request.user)
+        except Exception as e:
+            parts = ["Traceback (most recent call last):\n"]
+            parts.extend(traceback.format_stack(limit=25)[:-2])
+            parts.extend(traceback.format_exception(*sys.exc_info())[1:])
+            print("".join(parts))
+
         return Response({"message": _('Email activation link resent successfully')})
 
 
@@ -185,7 +197,6 @@ class VerifyEmailAPIView(APIView):
         return Response({"message": _('Email was verified successfully.')}, status=status.HTTP_200_OK)
 
 
-# user profile
 class UpdateProfileAPIView(APIView):
     """
     An endpoint for changing User Profile Data.
