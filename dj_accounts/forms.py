@@ -1,10 +1,11 @@
-from .verify_phone import VerifyPhone
 from django import forms
 from django.contrib.auth import get_user_model, authenticate
 from django.contrib.auth.forms import UserChangeForm as BaseUserChangeForm
 from django.contrib.auth.forms import UserCreationForm as BaseUserCreationForm
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
+
+from .verify_phone import VerifyPhone
 
 UserModel = get_user_model()
 
@@ -83,6 +84,10 @@ class MultipleLoginForm(forms.ModelForm):
     def clean(self):
         password = self.cleaned_data.pop('password')
         remember_me = self.cleaned_data.pop('remember_me')
+
+        if not password:
+            raise ValidationError(self.error_messages['invalid_credentials'],
+                                  code='invalid_credentials')
 
         login_by = next((key for key in list(self.cleaned_data.keys()) if self.cleaned_data[key]), None)
 
