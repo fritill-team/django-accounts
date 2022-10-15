@@ -181,7 +181,14 @@ class PhoneVerificationCompleteView(LoginRequiredMixin, View):
 class ResendPhoneConfirmationView(LoginRequiredMixin, View):
 
     def get(self, request, *args, **kwargs):
-        VerifyPhone().send(request.user.phone)
+        try:
+            VerifyPhone().send(request.user.phone)
+        except Exception as e:
+            parts = ["Traceback (most recent call last):\n"]
+            parts.extend(traceback.format_stack(limit=25)[:-2])
+            parts.extend(traceback.format_exception(*sys.exc_info())[1:])
+            print("".join(parts))
+
         messages.success(request, _("A new confirmation code has been sent to your phone"))
         return redirect(reverse("verify-phone"))
 
@@ -211,6 +218,13 @@ class EmailVerificationCompleteView(LoginRequiredMixin, View):
 
 class ResendEmailConfirmationLinkView(View):
     def get(self, request, *args, **kwargs):
-        send_mail_confirmation(request, request.user)
+        try:
+            send_mail_confirmation(request, request.user)
+        except Exception as e:
+            parts = ["Traceback (most recent call last):\n"]
+            parts.extend(traceback.format_stack(limit=25)[:-2])
+            parts.extend(traceback.format_exception(*sys.exc_info())[1:])
+            print("".join(parts))
+
         messages.success(request, 'email verification is sent successfully')
         return redirect(kwargs['next'])
