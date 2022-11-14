@@ -1,3 +1,4 @@
+import importlib
 import sys
 import traceback
 
@@ -18,7 +19,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 from .forms import UpdateEmailForm, UpdatePhoneNumberForm
 from .forms import VerifyPhoneForm
-from .serializers import LogoutSerializer, PasswordResetSerializer, UpdateUserDataSerializer, RegisterSerializer, \
+from .serializers import LogoutSerializer, PasswordResetSerializer, RegisterSerializer, \
     LoginSerializer, ChangePasswordSerializer
 from .utils import account_activation_token, send_mail_confirmation
 from .verify_phone import VerifyPhone
@@ -203,7 +204,13 @@ class UpdateProfileAPIView(APIView):
     """
 
     def get_serializer_class(self):
-        return getattr(settings, "PROFILE_SERIALIZER", UpdateUserDataSerializer)
+        serializer_class = getattr(settings, "PROFILE_SERIALIZER", 'dj_accounts.serializer.UpdateUserDataSerializer')
+        if type(serializer_class) is str:
+            form_class_split = serializer_class.split('.')
+            class_name = form_class_split[-1:][0]
+            module_name = form_class_split[:-1]
+            return getattr(importlib.import_module('.'.join(module_name)), class_name)
+        return serializer_class
 
     permission_classes = (IsAuthenticated,)
 

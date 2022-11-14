@@ -1,6 +1,6 @@
 import importlib
-import traceback
 import sys
+import traceback
 from pyexpat.errors import messages
 
 from django.conf import settings
@@ -19,14 +19,20 @@ from django.utils.translation import gettext_lazy as _
 from django.views import View
 
 from .forms import MultipleLoginForm, VerifyPhoneForm
-from .forms import UpdatePhoneNumberForm, UpdateEmailForm, UserChangeForm
+from .forms import UpdatePhoneNumberForm, UpdateEmailForm
 from .utils import account_activation_token, send_mail_confirmation
 from .verify_phone import VerifyPhone
 
 
 class UpdateProfileView(LoginRequiredMixin, View):
     def get_form_class(self):
-        return getattr(settings, "PROFILE_FORM", UserChangeForm)
+        form_class = getattr(settings, "PROFILE_FORM", 'dj_accounts.forms.UserChangeForm')
+        if type(form_class) is str:
+            form_class_split = form_class.split('.')
+            class_name = form_class_split[-1:][0]
+            module_name = form_class_split[:-1]
+            return getattr(importlib.import_module('.'.join(module_name)), class_name)
+        return form_class
 
     def get(self, request, *args, **kwargs):
         return render(request, 'dj_accounts/update_user_data_form.html', {
