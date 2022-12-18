@@ -35,10 +35,20 @@ class UserSignupAPIView(APIView):
     authentication_classes = []
     permission_classes = []
 
+    def get_form_class(self):
+        form_class = getattr(settings, "REGISTER_FORM", 'dj_accounts.forms.UserCreationForm')
+        if type(form_class) is str:
+            form_class_split = form_class.split('.')
+            class_name = form_class_split[-1:][0]
+            module_name = form_class_split[:-1]
+            return getattr(importlib.import_module('.'.join(module_name)), class_name)
+        else:
+            return form_class
+
     def post(self, request, *args, **kwargs):
-        serializer = RegisterSerializer(data=request.data)
-        if serializer.is_valid():
-            self.user = serializer.save()
+        form = self.get_form_class()(data=request.data)
+        if form.is_valid():
+            self.user = form.save()
 
             try:
                 send_mail_confirmation(request, self.user)
@@ -61,8 +71,8 @@ class UserSignupAPIView(APIView):
                 "access_token": str(refresh.access_token),
                 "refresh_token": str(refresh)
             }, status=status.HTTP_201_CREATED)
-
-        return Response(serializer.errors, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
+        errors = {name: error[0] for name, error in form.errors.as_data().items()}
+        return Response(errors, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
 
 
 class LoginAPIView(APIView):
