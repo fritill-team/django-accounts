@@ -1,0 +1,202 @@
+from django import forms
+from django.contrib.auth import get_user_model, authenticate, password_validation
+from django.contrib.auth.forms import UserCreationForm as BaseUserCreationForm
+from django.core.exceptions import ValidationError
+from django.utils.translation import gettext_lazy as _
+
+from .templatetags.auth import get_authentication_field_placeholder
+from .verify_phone import VerifyPhone
+
+UserModel = get_user_model()
+
+
+class MultipleLoginForm(forms.ModelForm):
+    identifier = forms.CharField(
+        required=True,
+        widget=forms.TextInput(attrs={
+            "placeholder": get_authentication_field_placeholder(),
+            "class": "form-control bg-transparent"
+        }))
+    password = forms.CharField(
+        label=_("Password"),
+        required=True,
+        strip=False,
+        widget=forms.PasswordInput(attrs={'autocomplete': 'current-password'}))
+    remember_me = forms.BooleanField(
+        required=False,
+        label=_('Remember Me'),
+        initial=False)
+
+    error_messages = {
+        'required': _("This field is required"),
+        'invalid_login': _(
+            "Please enter a correct credentials. Note that "
+            "fields may be case-sensitive."
+        ),
+        'inactive': _("This account is inactive."),
+        "invalid_credentials": _("Please enter a correct credentials"),
+    }
+
+    class Meta:
+        model = UserModel
+        fields = ('identifier', 'password', 'remember_me')
+
+    def __init__(self, request=None, *args, **kwargs):
+        self.request = request
+        self.user_cache = None
+        super(MultipleLoginForm, self).__init__(*args, **kwargs)
+
+    def get_user(self):
+        return self.user_cache
+
+    def clean(self):
+        identifier = self.cleaned_data.get('identifier', None)
+        password = self.cleaned_data.get('password', None)
+        remember_me = self.cleaned_data.get('remember_me')
+
+        if not identifier or not password:
+            if not identifier:
+                self.add_error('identifier', ValidationError(self.error_messages['required'], code='required'))
+
+            if not password:
+                self.add_error('password', ValidationError(self.error_messages['required'], code='required'))
+        else:
+            credentials = {"password": password, 'identifier': identifier}
+
+            self.user_cache = authenticate(request=self.request, **credentials)
+            if not self.user_cache:
+                raise ValidationError(self.error_messages['invalid_login'], code='invalid_login')
+            if not remember_me and self.request:
+                self.request.session.set_expiry(0)
+                self.request.session.modified = True
+            else:
+                if not self.user_cache.is_active:
+                    raise ValidationError(self.error_messages['inactive'], code='inactive')
+
+        return self.cleaned_data
+
+
+class UserCreationForm(BaseUserCreationForm):
+    password1 = forms.CharField(
+        label=_("Password"),
+        strip=False,
+        widget=forms.PasswordInput(attrs={
+            'autocomplete': 'off',
+            "placeholder": _("Password"),
+            "class": "form-control bg-transparent"
+        }),
+        help_text=password_validation.password_validators_help_text_html(),
+    )
+    password2 = forms.CharField(
+        label=_("Password confirmation"),
+        widget=forms.PasswordInput(attrs={
+            'autocomplete': 'off',
+            "placeholder": _("Password Confirmation"),
+            "class": "form-control bg-transparent"
+        }),
+        strip=False,
+        help_text=_("Enter the same password as before, for verification."),
+    )
+
+    toc = forms.BooleanField(
+        required=True,
+        label=_('terms'),
+        initial=False)
+
+    class Meta(BaseUserCreationForm.Meta):
+        model = UserModel
+        widgets = {
+            "password2": forms.PasswordInput(attrs={
+                'autocomplete': 'off',
+                "placeholder": _("Password Confirmation"),
+                "class": "form-control bg-transparent"
+            })
+        }
+
+
+class RegisterForm(UserCreationForm):
+    username = forms.CharField(
+        required=True,
+        max_length=100, help_text=_("Required, please provide your username"),
+        widget=forms.TextInput(attrs={
+            "autocomplete": "off",
+            "placeholder": _("Username"),
+            "class": "form-control bg-transparent"
+        }))
+
+    first_name = forms.CharField(
+        required=True,
+        max_length=100, help_text=_("Required, please provide your first name"),
+        widget=forms.TextInput(attrs={
+            "autocomplete": "off",
+            "placeholder": _("First Name"),
+            "class": "form-control bg-transparent"
+        }))
+
+    last_name = forms.CharField(
+        required=True,
+        max_length=100, help_text=_("Required, please provide your last name"),
+        widget=forms.TextInput(attrs={
+            "autocomplete": "off",
+            "placeholder": _("Last Name"),
+            "class": "form-control bg-transparent"
+        }))
+
+    email = forms.EmailField(
+        required=True,
+        max_length=100, help_text=_("Required, please provide your email"),
+        widget=forms.EmailInput(attrs={
+            "autocomplete": "off",
+            "placeholder": _("Email"),
+            "class": "form-control bg-transparent"
+        }))
+
+    phone = forms.CharField(
+        required=True,
+        max_length=100, help_text=_("Required, please provide your phone number"),
+        widget=forms.TextInput(attrs={
+            "autocomplete": "off",
+            "placeholder": _("Phone"),
+            "class": "form-control bg-transparent"
+        }))
+
+    class Meta(UserCreationForm.Meta):
+        fields = UserCreationForm.Meta.fields + ("username", "first_name", "last_name", 'email', 'phone',)
+
+    def is_valid(self):
+        result = super().is_valid()
+        # loop on *all* fields if key '__all__' found else only on errors:
+        for x in (self.fields if '__all__' in self.errors else self.errors):
+            attrs = self.fields[x].widget.attrs
+            attrs.update({'class': attrs.get('class', '') + ' is-invalid'})
+        return result
+
+    def clean_phone(self):
+        phone = self.cleaned_data['phone']
+        if UserModel.objects.filter(phone=phone).exists():
+            raise ValidationError("Phone already exists", code="unique")
+        return phone
+
+    def clean_email(self):
+        email = self.cleaned_data['email']
+        if UserModel.objects.filter(email=email).exists():
+            raise ValidationError("Email already exists", code="unique")
+        return email
+
+
+class VerifyPhoneForm(forms.Form):
+    code = forms.CharField(max_length=6, min_length=6)
+
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user', None)
+        super(VerifyPhoneForm, self).__init__(*args, **kwargs)
+        self.fields['code'].label = "message sent to phone number: {}".format(self.user.phone)
+
+    def clean(self):
+        code = self.cleaned_data.get('code')
+
+        success = VerifyPhone().check(self.user.phone, code)
+        if not success:
+            raise ValidationError(_("The Provided code is Properly invalid"), code='invalid_code')
+
+        return self.cleaned_data

@@ -102,7 +102,7 @@ if you want to enable phone verification you can add the following to your setti
 
 ```python
 ENABLE_PHONE_VERIFICATION_ACTIVE = True
-PHONE_VERIFY_SERVICE = 'dj_accounts.tests.mocks.TestingVerifyService'
+PHONE_VERIFY_SERVICE = 'dj_accounts.authentication.tests.mocks.TestingVerifyService'
 ```
 
 you can find the implementation guide for phone verification here.
