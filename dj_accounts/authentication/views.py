@@ -1,4 +1,3 @@
-import importlib
 import sys
 import traceback
 
@@ -7,6 +6,7 @@ from django.contrib import messages
 from django.contrib.auth import login, get_user_model
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import LoginView as BaseLoginView
+from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.utils.encoding import force_text
@@ -16,10 +16,9 @@ from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy as _
 from django.views import View
 
-from dj_accounts.utils import account_activation_token, send_mail_confirmation, get_settings_value, \
-    get_class_from_settings
-from .forms import MultipleLoginForm, VerifyPhoneForm
-from .mixins import LoginGetFormClassMixin
+from dj_accounts.utils import account_activation_token, send_email_confirmation, get_settings_value
+from .forms import VerifyPhoneForm
+from .mixins import LoginGetFormClassMixin, RegisterMixin
 from .verify_phone import VerifyPhone
 
 UserModel = get_user_model()
@@ -36,9 +35,17 @@ class LoginView(LoginGetFormClassMixin, BaseLoginView):
             get_settings_value('AUTHENTICATION_THEME', 'corporate'))]
 
 
-class RegisterView(View):
-    def get_form_class(self):
-        return get_class_from_settings('REGISTER_FORM', 'dj_accounts.authentication.forms.UserCreationForm')
+class SendMail(View):
+    def get(self, request):
+        user = UserModel.objects.get(pk=2)
+        try:
+            send_email_confirmation(request, user)
+        except Exception as e:
+            print(e)
+        return HttpResponse("<p>Sent</p>")
+
+
+class RegisterView(RegisterMixin, View):
 
     def get_template_name(self):
         """
@@ -62,7 +69,7 @@ class RegisterView(View):
             login(self.request, user)
 
             try:
-                send_mail_confirmation(request, user)
+                send_email_confirmation(request, user)
                 VerifyPhone().send(user.phone)
             except Exception as e:
                 parts = ["Traceback (most recent call last):\n"]
@@ -73,7 +80,6 @@ class RegisterView(View):
             if 'next' in request.POST:
                 return redirect(request.POST.get('next'))
             return redirect(settings.LOGIN_REDIRECT_URL)
-
         return render(self.request, self.get_template_name(), {"form": form})
 
 
@@ -143,7 +149,7 @@ class EmailVerificationCompleteView(LoginRequiredMixin, View):
 class ResendEmailConfirmationLinkView(View):
     def get(self, request, *args, **kwargs):
         try:
-            send_mail_confirmation(request, request.user)
+            send_email_confirmation(request, request.user)
         except Exception as e:
             parts = ["Traceback (most recent call last):\n"]
             parts.extend(traceback.format_stack(limit=25)[:-2])

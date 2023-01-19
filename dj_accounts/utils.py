@@ -21,20 +21,27 @@ class TokenGenerator(PasswordResetTokenGenerator):
 account_activation_token = TokenGenerator()
 
 
-def send_mail_confirmation(request, user):
+def send_email_confirmation(request, user):
     current_site = get_current_site(request)
     mail_subject = _('Activate your account.')
-    message = render_to_string('dj_accounts/confirm_email_template.html', {
+    message = render_to_string('dj_accounts/emails/email_confirmation.html', {
         'user': user,
         'domain': current_site.domain,
         'uid': urlsafe_base64_encode(force_bytes(user.pk)),
         'token': account_activation_token.make_token(user),
     })
-    send_mail(mail_subject, message, settings.EMAIL_HOST_USER, [user.email])
+    send_mail(mail_subject, message, settings.DEFAULT_FROM_EMAIL, [user.email])
 
 
 def get_settings_value(settings_key, default_value=None):
     return getattr(settings, settings_key, default_value)
+
+
+def import_class_or_function(name):
+    name_split = name.split('.')
+    name = name_split[-1:][0]
+    module_name = name_split[:-1]
+    return getattr(importlib.import_module('.'.join(module_name)), name)
 
 
 def get_class_from_settings(settings_key, default_class=None):
@@ -43,13 +50,7 @@ def get_class_from_settings(settings_key, default_class=None):
     if not class_name:
         class_name = default_class
 
-    if type(class_name) is str:
-        class_name_split = class_name.split('.')
-        class_name = class_name_split[-1:][0]
-        module_name = class_name_split[:-1]
-        return getattr(importlib.import_module('.'.join(module_name)), class_name)
-    else:
-        return class_name
+    return import_class_or_function(class_name) if type(class_name) is str else class_name
 
 
 def get_user_tokens(user):

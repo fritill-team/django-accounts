@@ -2,9 +2,10 @@ from django.contrib.auth import views as auth_views
 from django.urls import path, reverse_lazy
 
 from .views import LoginView, RegisterView, ResendEmailConfirmationLinkView, VerifyEmailView, \
-    EmailVerificationCompleteView, VerifyPhoneView, PhoneVerificationCompleteView, ResendPhoneConfirmationView
+    EmailVerificationCompleteView, VerifyPhoneView, PhoneVerificationCompleteView, ResendPhoneConfirmationView, SendMail
 
 urlpatterns = [
+    path('send/', SendMail.as_view(), name="send-mail"),
     path('login/', LoginView.as_view(), name="login"),
     path('register/', RegisterView.as_view(), name='register'),
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),

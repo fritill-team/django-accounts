@@ -19,11 +19,10 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 # from .forms import UpdateEmailForm, UpdatePhoneNumberForm
 from .forms import VerifyPhoneForm
-from .mixins import LoginGetFormClassMixin
-from .serializers import LogoutSerializer, PasswordResetSerializer, RegisterSerializer, \
-    ChangePasswordSerializer
+from .mixins import LoginGetFormClassMixin, RegisterMixin
+from .serializers import LogoutSerializer, PasswordResetSerializer, ChangePasswordSerializer
 from .verify_phone import VerifyPhone
-from ..utils import account_activation_token, send_mail_confirmation, get_user_tokens, get_errors
+from ..utils import account_activation_token, send_email_confirmation, get_user_tokens, get_errors
 
 UserModel = get_user_model()
 
@@ -38,39 +37,42 @@ class LoginAPIView(LoginGetFormClassMixin, APIView):
             user = form.user_cache
             tokens = get_user_tokens(user)
             return Response(tokens, status=status.HTTP_200_OK)
-        print(form.errors.as_data())
+
         return Response(get_errors(form.errors.as_data()), status=status.HTTP_422_UNPROCESSABLE_ENTITY)
 
 
-class UserSignupAPIView(APIView):
-    access_token = None
-    refresh_token = None
-    token = None
-    user = None
+class RegisterAPIView(RegisterMixin, APIView):
+    # access_token = None
+    # refresh_token = None
+    # token = None
+    # user = None
     authentication_classes = []
     permission_classes = []
 
     def post(self, request, *args, **kwargs):
-        serializer = RegisterSerializer(data=request.data)
-        if serializer.is_valid():
-            self.user = serializer.save()
+        form = self.get_form_class()(data=request.data)
+        if form.is_valid():
+            user = form.save()
+
+            self.get_register_callback(user)
+
+            self.call_send_email_confirmation(request, user)
 
             try:
-                send_mail_confirmation(request, self.user)
-                VerifyPhone().send(self.user.phone)
+                VerifyPhone().send(user.phone)
             except Exception as e:
                 parts = ["Traceback (most recent call last):\n"]
                 parts.extend(traceback.format_stack(limit=25)[:-2])
                 parts.extend(traceback.format_exception(*sys.exc_info())[1:])
                 print("".join(parts))
 
-            refresh = RefreshToken.for_user(self.user)
+            refresh = RefreshToken.for_user(user)
             return Response({
                 "access_token": str(refresh.access_token),
                 "refresh_token": str(refresh)
             }, status=status.HTTP_201_CREATED)
 
-        return Response(serializer.errors, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
+        return Response(form.errors, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
 
 
 class UserLogoutAPIView(APIView):
@@ -165,7 +167,7 @@ class ResendPhoneConfirmationAPIView(APIView):
 class ResendEmailConfirmationLinkAPIView(APIView):
     def get(self, request, *args, **kwargs):
         try:
-            send_mail_confirmation(request, request.user)
+            send_email_confirmation(request, request.user)
         except Exception as e:
             parts = ["Traceback (most recent call last):\n"]
             parts.extend(traceback.format_stack(limit=25)[:-2])

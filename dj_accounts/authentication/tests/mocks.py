@@ -18,3 +18,7 @@ class TestingVerifyService(VerifyPhoneServiceAbstract):
 
     def check(self, phone, code):
         return True
+
+
+def register_callback(user):
+    pass

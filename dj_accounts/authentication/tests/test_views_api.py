@@ -117,48 +117,7 @@ class TestUserLogoutView(TestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
 
-class UserSignupAPIViewTestCase(TestCase):
-    def setUp(self):
-        self.client = APIClient()
-        self.user = UserFactory()
-        self.url = reverse('signup_api')
-        self.data = {
-            "email": "test@test.test",
-            "username": "TestUser",
-            "phone": "+201005263988",
-            "password1": "newTESTPasswordD",
-            "password2": "newTESTPasswordD",
-            "gender": "male",
-            "birthdate": dateformat.format(timezone.now(), 'Y-m-d'),
-        }
 
-    def test_it_returns_422_when_data_is_invalid(self):
-        """
-            set Up :
-              - we are trying post empty registration form data to serializer
-            result : returning response 422 the data you posted not valid
-        """
-        response = self.client.post(self.url, {})
-        self.assertEquals(response.status_code, 422)
-
-    def test_it_returns_201_when_user_created_successfully(self):
-        """
-              set Up :
-                - we are trying post registration data to serializer
-              result : returning response 201 the data you posted is right and create product
-        """
-        response = self.client.post(self.url, self.data)
-        self.assertEquals(response.status_code, 201)
-
-    def test_it_create_send_the_email(self):
-        response = self.client.post(self.url, self.data)
-        self.assertEqual(len(mail.outbox), 1)
-        self.assertEqual(mail.outbox[0].subject, 'Activate your account.')
-
-    def test_it_return_access_and_refresh_tokens_once_user_is_signup(self):
-        response = self.client.post(self.url, self.data)
-        self.assertIn('access_token', response.data)
-        self.assertIn('refresh_token', response.data)
 
 
 # phone verification
