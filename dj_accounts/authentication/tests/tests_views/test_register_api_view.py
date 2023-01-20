@@ -70,10 +70,10 @@ class RegisterAPIViewTestCase(APITestCase):
         self.client.post(self.url, self.data)
         self.assertTrue(mock_get_register_callback.called)
 
-    @patch('dj_accounts.authentication.mixins.RegisterMixin.call_send_confirmation_email', autospec=True)
-    def test_it_calls_call_send_mail_confirmation_function(self, mock_call_send_confirmation_email):
+    @patch('dj_accounts.authentication.mixins.RegisterMixin.call_send_email_confirmation', autospec=True)
+    def test_it_calls_call_send_mail_confirmation_function(self, mock_call_send_email_confirmation):
         self.client.post(self.url, self.data)
-        self.assertTrue(mock_call_send_confirmation_email.called)
+        self.assertTrue(mock_call_send_email_confirmation.called)
 
     # def test_it_create_send_the_email(self):
     #     response = self.client.post(self.url, self.data)

@@ -92,10 +92,10 @@ class RegisterMixinGetRegisterCallbackTestCase(TestCase):
 
 class RegisterMixinSendConfirmationEmailTestCase(TestCase):
     @override_settings(EMAIL_BACKEND='django.core.mail.backends.console.EmailBackend')
-    @patch('dj_accounts.utils.send_email_confirmation', autospec=True)
-    def test_it_calls_call_send_email_confirmation_function(self, mock_call_send_email_confirmation):
+    @patch('django.core.mail.send_mail', autospec=True)
+    def test_it_calls_send_mail_function(self, mock_send_mail):
         RegisterMixin().call_send_email_confirmation(Mock(), Mock())
-        self.assertTrue(mock_call_send_email_confirmation.called)
+        self.assertTrue(mock_send_mail.called)
 
 
 class RegisterGetFormClassMixinTestCase(TestCase):
