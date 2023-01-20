@@ -68,14 +68,11 @@ class RegisterView(RegisterMixin, View):
             user = form.save()
             login(self.request, user)
 
-            try:
-                send_email_confirmation(request, user)
-                VerifyPhone().send(user.phone)
-            except Exception as e:
-                parts = ["Traceback (most recent call last):\n"]
-                parts.extend(traceback.format_stack(limit=25)[:-2])
-                parts.extend(traceback.format_exception(*sys.exc_info())[1:])
-                print("".join(parts))
+            self.get_register_callback(user)
+
+            self.send_email_confirmation(request, user)
+
+            self.send_phone_verification(user)
 
             if 'next' in request.POST:
                 return redirect(request.POST.get('next'))

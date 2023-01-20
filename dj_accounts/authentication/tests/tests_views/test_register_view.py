@@ -1,8 +1,8 @@
 import inspect
+from unittest.mock import patch
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.contrib.auth.models import AnonymousUser
 from django.test import TestCase, Client, override_settings
 from django.urls import reverse
 from django.views import View
@@ -139,3 +139,18 @@ class RegisterViewPOSTTestCase(TestCase):
     def test_response_context_form_is_instance_of_register_form_if_settings_register_from_is_set(self):
         response = self.client.get(self.url)
         self.assertIsInstance(response.context['form'], RegisterForm)
+
+    @patch('dj_accounts.authentication.mixins.RegisterMixin.get_register_callback', autospec=True)
+    def test_it_calls_get_register_callback(self, mock_get_register_callback):
+        self.client.post(self.url, self.data)
+        self.assertTrue(mock_get_register_callback.called)
+
+    @patch('dj_accounts.authentication.mixins.RegisterMixin.send_email_confirmation', autospec=True)
+    def test_it_calls_send_mail_confirmation_function(self, mock_send_email_confirmation):
+        self.client.post(self.url, self.data)
+        self.assertTrue(mock_send_email_confirmation.called)
+
+    @patch('dj_accounts.authentication.mixins.RegisterMixin.send_phone_verification', autospec=True)
+    def test_it_calls_send_phone_verification_function(self, mock_send_phone_verification):
+        self.client.post(self.url, self.data)
+        self.assertTrue(mock_send_phone_verification.called)

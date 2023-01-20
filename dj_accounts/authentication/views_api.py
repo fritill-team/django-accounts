@@ -17,7 +17,6 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 
-# from .forms import UpdateEmailForm, UpdatePhoneNumberForm
 from .forms import VerifyPhoneForm
 from .mixins import LoginGetFormClassMixin, RegisterMixin
 from .serializers import LogoutSerializer, PasswordResetSerializer, ChangePasswordSerializer
