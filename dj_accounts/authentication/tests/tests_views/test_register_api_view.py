@@ -59,26 +59,25 @@ class RegisterAPIViewTestCase(APITestCase):
         response = self.client.post(self.url, self.data)
         self.assertEquals(response.status_code, 201)
 
-    def test_it_called_send_mail_confirmation_function(self):
-        response = self.client.post(self.url, self.data)
-        response.mock = MagicMock()
-        response.mock.send_mail_confirmation()
-        response.mock.send_mail_confirmation.assert_called_once_with()
-
     @patch('dj_accounts.authentication.mixins.RegisterMixin.get_register_callback', autospec=True)
     def test_it_calls_get_register_callback(self, mock_get_register_callback):
         self.client.post(self.url, self.data)
         self.assertTrue(mock_get_register_callback.called)
 
-    @patch('dj_accounts.authentication.mixins.RegisterMixin.call_send_email_confirmation', autospec=True)
-    def test_it_calls_call_send_mail_confirmation_function(self, mock_call_send_email_confirmation):
+    @patch('dj_accounts.authentication.mixins.RegisterMixin.send_email_confirmation', autospec=True)
+    def test_it_calls_send_mail_confirmation_function(self, mock_send_email_confirmation):
         self.client.post(self.url, self.data)
-        self.assertTrue(mock_call_send_email_confirmation.called)
+        self.assertTrue(mock_send_email_confirmation.called)
 
-    # def test_it_create_send_the_email(self):
-    #     response = self.client.post(self.url, self.data)
-    #     self.assertEqual(len(mail.outbox), 1)
-    #     self.assertEqual(mail.outbox[0].subject, 'Activate your account.')
+    @patch('dj_accounts.authentication.mixins.RegisterMixin.send_phone_verification', autospec=True)
+    def test_it_calls_send_phone_verification_function(self, mock_send_phone_verification):
+        self.client.post(self.url, self.data)
+        self.assertTrue(mock_send_phone_verification.called)
+
+    @patch('rest_framework_simplejwt.tokens.RefreshToken.for_user', autospec=True)
+    def test_it_calls_refresh_token_for_user_method(self, mock_refresh_token_for_user):
+        self.client.post(self.url, self.data)
+        self.assertTrue(mock_refresh_token_for_user.called)
 
     def test_it_return_access_and_refresh_tokens_once_user_is_signup(self):
         response = self.client.post(self.url, self.data)

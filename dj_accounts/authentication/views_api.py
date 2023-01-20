@@ -56,17 +56,12 @@ class RegisterAPIView(RegisterMixin, APIView):
 
             self.get_register_callback(user)
 
-            self.call_send_email_confirmation(request, user)
+            self.send_email_confirmation(request, user)
 
-            try:
-                VerifyPhone().send(user.phone)
-            except Exception as e:
-                parts = ["Traceback (most recent call last):\n"]
-                parts.extend(traceback.format_stack(limit=25)[:-2])
-                parts.extend(traceback.format_exception(*sys.exc_info())[1:])
-                print("".join(parts))
+            self.send_phone_verification(user)
 
             refresh = RefreshToken.for_user(user)
+
             return Response({
                 "access_token": str(refresh.access_token),
                 "refresh_token": str(refresh)

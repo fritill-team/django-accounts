@@ -1,12 +1,16 @@
 import inspect
-from unittest.mock import patch, Mock
+from unittest.mock import patch
 
+from django.conf import settings
 from django.contrib.auth.forms import AuthenticationForm
-from django.test import TestCase, override_settings
+from django.core import mail
+from django.test import TestCase, override_settings, RequestFactory
+from django.urls import reverse
 
-from dj_accounts.authentication.forms import MultipleLoginForm, RegisterForm, UserCreationForm
-from dj_accounts.authentication.mixins import LoginGetFormClassMixin, RegisterMixin
-from dj_accounts.authentication.tests.forms import TestLoginForm
+from ..forms import MultipleLoginForm, RegisterForm, UserCreationForm
+from ..mixins import LoginGetFormClassMixin, RegisterMixin
+from ..tests.factories import UserFactory
+from ..tests.forms import TestLoginForm
 
 
 class LoginGetFormClassMixinTestCase(TestCase):
@@ -59,26 +63,26 @@ class RegisterMixinStructureTestCase(TestCase):
         actual_signature = inspect.getfullargspec(RegisterMixin.get_register_callback)[0]
         self.assertEquals(actual_signature, expected_signature)
 
-    def test_it_has_call_send_email_confirmation_method(self):
-        self.assertIn('call_send_email_confirmation', dict(inspect.getmembers(RegisterMixin)))
+    def test_it_has_send_email_confirmation_method(self):
+        self.assertIn('send_email_confirmation', dict(inspect.getmembers(RegisterMixin)))
 
-    def test_call_send_email_confirmation_is_callable(self):
-        self.assertTrue(callable(RegisterMixin.call_send_email_confirmation))
+    def test_send_email_confirmation_is_callable(self):
+        self.assertTrue(callable(RegisterMixin.send_email_confirmation))
 
-    def test_call_send_email_confirmation_method_signature(self):
+    def test_send_email_confirmation_method_signature(self):
         expected_signature = ['self', 'request', 'user']
-        actual_signature = inspect.getfullargspec(RegisterMixin.call_send_email_confirmation)[0]
+        actual_signature = inspect.getfullargspec(RegisterMixin.send_email_confirmation)[0]
         self.assertEquals(actual_signature, expected_signature)
 
-    def test_it_has_call_send_phone_verification_method(self):
-        self.assertIn('call_send_phone_verification', dict(inspect.getmembers(RegisterMixin)))
+    def test_it_has_send_phone_verification_method(self):
+        self.assertIn('send_phone_verification', dict(inspect.getmembers(RegisterMixin)))
 
-    def test_call_send_phone_verification_is_callable(self):
-        self.assertTrue(callable(RegisterMixin.call_send_phone_verification))
+    def test_send_phone_verification_is_callable(self):
+        self.assertTrue(callable(RegisterMixin.send_phone_verification))
 
-    def test_call_send_phone_verification_method_signature(self):
+    def test_send_phone_verification_method_signature(self):
         expected_signature = ['self', 'user']
-        actual_signature = inspect.getfullargspec(RegisterMixin.call_send_phone_verification)[0]
+        actual_signature = inspect.getfullargspec(RegisterMixin.send_phone_verification)[0]
         self.assertEquals(actual_signature, expected_signature)
 
 
@@ -86,16 +90,24 @@ class RegisterMixinGetRegisterCallbackTestCase(TestCase):
     @override_settings(REGISTER_CALLBACK='dj_accounts.authentication.tests.mocks.register_callback')
     @patch('dj_accounts.authentication.tests.mocks.register_callback', autospec=True)
     def test_it_calls_settings_register_callback_if_is_set(self, mock_register_callback):
-        RegisterMixin().get_register_callback(Mock())
+        RegisterMixin().get_register_callback(UserFactory())
         self.assertTrue(mock_register_callback.called)
 
 
-class RegisterMixinSendConfirmationEmailTestCase(TestCase):
-    @override_settings(EMAIL_BACKEND='django.core.mail.backends.console.EmailBackend')
-    @patch('django.core.mail.send_mail', autospec=True)
-    def test_it_calls_send_mail_function(self, mock_send_mail):
-        RegisterMixin().call_send_email_confirmation(Mock(), Mock())
-        self.assertTrue(mock_send_mail.called)
+class RegisterMixinSendEmailConfirmationTestCase(TestCase):
+    @override_settings(EMAIL_BACKEND='django.core.mail.backends.locmem.EmailBackend')
+    def test_it_sends_email_confirmation(self):
+        request = RequestFactory().get(reverse('register'))
+        RegisterMixin().send_email_confirmation(request, UserFactory())
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(mail.outbox[0].subject, getattr(settings, 'EMAIL_CONFIRMATION_SUBJECT', None))
+
+
+class RegisterMixinSendPhoneVerificationTestCase(TestCase):
+    @patch('dj_accounts.authentication.verify_phone.VerifyPhone.send', autospec=True)
+    def test_it_calls_send_phone_verification(self, mock_send):
+        RegisterMixin().send_phone_verification(UserFactory())
+        self.assertTrue(mock_send.called)
 
 
 class RegisterGetFormClassMixinTestCase(TestCase):
