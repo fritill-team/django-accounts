@@ -3,9 +3,10 @@ import traceback
 
 from django.conf import settings
 from django.contrib.sites.shortcuts import get_current_site
-from django.core.mail import send_mail
+from django.core.mail import EmailMultiAlternatives, send_mail
 from django.template.loader import render_to_string
 from django.utils.encoding import force_bytes
+from django.utils.html import strip_tags
 from django.utils.http import urlsafe_base64_encode
 
 from .forms import MultipleLoginForm
@@ -43,13 +44,20 @@ class RegisterMixin:
         try:
             current_site = get_current_site(request)  # 'Activate your account.'
             mail_subject = get_settings_value('EMAIL_CONFIRMATION_SUBJECT', None)
-            message = render_to_string('dj_accounts/emails/email_confirmation.html', {
+            html_message = render_to_string('dj_accounts/emails/email_confirmation.html', {
+                
                 'user': user,
                 'domain': current_site.domain,
                 'uid': urlsafe_base64_encode(force_bytes(user.pk)),
                 'token': account_activation_token.make_token(user),
             })
-            send_mail(mail_subject, message, settings.DEFAULT_FROM_EMAIL, [user.email])
+            send_mail(
+                subject=mail_subject,
+                html_message=html_message,
+                message=html_message,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[user.email]
+            )
         except Exception as e:
             parts = ["Traceback (most recent call last):\n"]
             parts.extend(traceback.format_stack(limit=25)[:-2])

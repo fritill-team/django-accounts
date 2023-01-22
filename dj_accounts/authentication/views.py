@@ -39,7 +39,7 @@ class SendMail(View):
     def get(self, request):
         user = UserModel.objects.get(pk=1)
         try:
-            send_email_confirmation(request, user)
+            RegisterMixin().send_email_confirmation(request, user)
         except Exception as e:
             print(e)
         return HttpResponse("<p>Sent</p>")

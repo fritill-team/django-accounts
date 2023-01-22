@@ -1,6 +1,7 @@
 # Application definition
 
 INSTALLED_APPS = [
+    'translation',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',

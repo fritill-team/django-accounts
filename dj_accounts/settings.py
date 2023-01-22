@@ -1,4 +1,6 @@
 # AUTHENTICATION THEMES
+from django.utils.translation import gettext_lazy as _
+
 AUTHENTICATION_THEME_CORPORATE = 'corporate'
 AUTHENTICATION_THEME_CREATIVE = 'creative'
 AUTHENTICATION_THEME_OVERLAY = 'overlay'
@@ -11,7 +13,7 @@ MULTIPLE_AUTHENTICATION_ACTIVE = True
 
 # LOGIN_FORM = 'django.contrib.auth.forms.AuthenticationForm'
 REGISTER_FORM = 'dj_accounts.authentication.forms.RegisterForm'
-
+EMAIL_CONFIRMATION_SUBJECT = _("Activate Your Account")
 # Phone Service
 PHONE_VERIFY_SERVICE = 'dj_accounts.authentication.tests.mocks.TestingVerifyService'
 
