@@ -19,6 +19,7 @@ class SiteProfile(TranslatableModel):
     class Meta:
         verbose_name = _("Site Profile")
         verbose_name_plural = _('Sites Profiles')
+        default_permissions = ()
 
     def upload_logo_to(self, filename):
         return 'sites/{}/{}'.format(self.site_id, filename)
@@ -31,11 +32,13 @@ class SiteProfile(TranslatableModel):
     keywords = models.JSONField(default=dict, verbose_name=_("Keywords"))
     logo = models.FileField(default=None, null=True, blank=True, upload_to=upload_logo_to, verbose_name=_("Logo"))
 
+    def __str__(self):
+        return self.translated_name
+
 
 @receiver(post_save, sender=Site)
 def create_site_profile_created_site_signal(sender, instance, created, **kwargs):
     if created:
         instance.siteprofile = SiteProfile.objects.create(
             site=instance,
-            name=instance.name
-        )
+            name=instance.name)

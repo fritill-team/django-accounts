@@ -22,8 +22,12 @@ class SiteProfileModelTestCase(TestCase):
     def test_its_class_meta_verbose_name(self):
         self.assertEqual(SiteProfile._meta.verbose_name, _("Site Profile"))
 
+
     def test_its_class_meta_verbose_name_plural(self):
         self.assertEqual(SiteProfile._meta.verbose_name_plural, _("Sites Profiles"))
+
+    def test_its_class_meta_default_permissions(self):
+        self.assertEqual(SiteProfile._meta.default_permissions, ())
 
     def test_it_has_translatable_dict(self):
         self.assertTrue(hasattr(SiteProfile, 'translatable'))

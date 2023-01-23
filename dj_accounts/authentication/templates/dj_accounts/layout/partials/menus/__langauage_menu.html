@@ -1,0 +1,19 @@
+{% load i18n %}
+{% get_current_language as LANGUAGE_CODE %}
+{% get_available_languages as LANGUAGES %}
+{% get_language_info_list for LANGUAGES as languages %}
+
+{% for language in languages %}
+  <div class="menu-item px-3">
+    <a href="{% url 'set_language' %}"
+       onclick="event.preventDefault();document.getElementById('{{ language.code }}-form').submit()"
+       class="menu-link d-flex px-5{% if language.code == LANGUAGE_CODE %} active{% endif %}">
+      {{ language.name_local }}
+    </a>
+    <form action="{% url 'set_language' %}" method="post" id="{{ language.code }}-form" style="display: none">
+      {% csrf_token %}
+      <input name="next" type="hidden" value="{{ redirect_to }}">
+      <input name="language" type="hidden" value="{{ language.code }}">
+    </form>
+  </div>
+{% endfor %}

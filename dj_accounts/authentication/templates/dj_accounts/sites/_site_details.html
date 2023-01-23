@@ -1,0 +1,94 @@
+{% load get_lang %}
+{% load i18n %}
+{% for site in sites %}
+  {% with profile=site.siteprofile %}
+    <div class="tab-pane fade show{% if forloop.first %} active{% endif %}"
+         id="site-{{ site.id }}" role="tabpanel">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title flex-column">
+            <h3 class="mb-0 text-gray-700">{{ site.name }}</h3>
+            <span class="fs-6 text-gray-400">{{ site.domain }}</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-6">
+              <div class="fw-bold mt-5">{% trans "Names" %}</div>
+              <div class="text-gray-600 row row-cols-2">
+                {% translate "Not Availabel" as NOT_AVAILABLE %}
+                {% for key, value in profile.name.items %}
+                  <span class="fw-bold">{% get_lang key %}</span>
+                  {% if value %}
+                    <span>{{ value }}</span>
+                  {% else %}
+                    {{ NOT_AVAILABLE }}
+                  {% endif %}
+                {% empty %}
+                  {{ NOT_AVAILABLE }}
+                {% endfor %}
+              </div>
+              <div class="fw-bold mt-5">{% trans "Descriptions" %}</div>
+              <div class="text-gray-600 row row-cols-2">
+                {% translate "Not Availabel" as NOT_AVAILABLE %}
+                {% for key, value in profile.description.items %}
+                  <span class="fw-bold">{% get_lang key %}</span>
+                  {% if value %}
+                    <span>{{ value }}</span>
+                  {% else %}
+                    {{ NOT_AVAILABLE }}
+                  {% endif %}
+                {% empty %}
+                  {{ NOT_AVAILABLE }}
+                {% endfor %}
+              </div>
+              <div class="fw-bold mt-5">{% trans "Address" %}</div>
+              <div class="text-gray-600 row row-cols-2">
+                {% translate "Not Availabel" as NOT_AVAILABLE %}
+                {% for key, value in profile.address.items %}
+                  <span class="fw-bold">{% get_lang key %}</span>
+                  {% if value %}
+                    <span>{{ value }}</span>
+                  {% else %}
+                    {{ NOT_AVAILABLE }}
+                  {% endif %}
+                {% empty %}
+                  {{ NOT_AVAILABLE }}
+                {% endfor %}
+              </div>
+              <div class="fw-bold mt-5">{% trans "Copyrights" %}</div>
+              <div class="text-gray-600 row row-cols-2">
+                {% translate "Not Availabel" as NOT_AVAILABLE %}
+                {% for key, value in profile.copyrights.items %}
+                  <span class="fw-bold">{% get_lang key %}</span>
+                  {% if value %}
+                    <span>{{ value }}</span>
+                  {% else %}
+                    {{ NOT_AVAILABLE }}
+                  {% endif %}
+                {% empty %}
+                  {{ NOT_AVAILABLE }}
+                {% endfor %}
+              </div>
+              <div class="fw-bold mt-5">{% trans "Keywords" %}</div>
+              <div class="text-gray-600 row row-cols-2">
+                {% translate "Not Availabel" as NOT_AVAILABLE %}
+                {% for key, value in profile.keywords.items %}
+                  <span class="fw-bold">{% get_lang key %}</span>
+                  {% if value %}
+                    <span>{{ value }}</span>
+                  {% else %}
+                    {{ NOT_AVAILABLE }}
+                  {% endif %}
+                {% empty %}
+                  {{ NOT_AVAILABLE }}
+                {% endfor %}
+              </div>
+            </div>
+            <div class="col-md-6"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  {% endwith %}
+{% endfor %}

@@ -20,8 +20,11 @@
 
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,400,500,600,700"/>
 
-
-  <link href="{% static "dj_accounts/plugins/global/plugins.bundle.css" %}" rel="stylesheet" type="text/css"/>
-  <link href="{% static "dj_accounts/css/style.bundle.css" %}" rel="stylesheet" type="text/css"/>
-
+  {% if LANGUAGE_BIDI %}
+    <link href="{% static "dj_accounts/plugins/global/plugins.bundle.rtl.css" %}" rel="stylesheet" type="text/css"/>
+    <link href="{% static "dj_accounts/css/style.bundle.rtl.css" %}" rel="stylesheet" type="text/css"/>
+  {% else %}
+    <link href="{% static "dj_accounts/plugins/global/plugins.bundle.css" %}" rel="stylesheet" type="text/css"/>
+    <link href="{% static "dj_accounts/css/style.bundle.css" %}" rel="stylesheet" type="text/css"/>
+  {% endif %}
 </head>

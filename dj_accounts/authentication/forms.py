@@ -1,9 +1,12 @@
 from django import forms
 from django.contrib.auth import get_user_model, authenticate, password_validation
 from django.contrib.auth.forms import UserCreationForm as BaseUserCreationForm
+from django.contrib.sites.models import Site
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
+from translation.forms import TranslatableModelForm
 
+from .models import SiteProfile
 from .templatetags.auth import get_authentication_field_placeholder
 from .verify_phone import VerifyPhone
 
@@ -200,3 +203,40 @@ class VerifyPhoneForm(forms.Form):
             raise ValidationError(_("The Provided code is Properly invalid"), code='invalid_code')
 
         return self.cleaned_data
+
+
+class SiteProfileForm(TranslatableModelForm):
+    domain = forms.URLField(required=True, initial="")
+
+    class Meta:
+        model = SiteProfile
+        fields = ('domain', 'site', 'name', 'description', 'address', 'copyrights', 'keywords', 'logo')
+        widgets = {
+            "site": forms.HiddenInput()
+        }
+
+    def __init__(self, *args, **kwargs):
+        super(SiteProfileForm, self).__init__(*args, **kwargs)
+        self.fields['site'].required = False
+        self.fields['keywords'].required = False
+        self.fields['copyrights'].required = False
+        self.fields['address'].required = False
+        self.fields['description'].required = False
+
+    def save(self, commit=True):
+        domain = self.cleaned_data.pop('domain')
+        domain = domain.split('://')[1]
+        instance = super().save(commit=False)
+        if commit:
+            site = self.cleaned_data.get('site', None)
+            if not site:
+                site = Site.objects.create(
+                    domain=domain,
+                    name=self.cleaned_data.get('name'))
+                instance = site.siteprofile
+            else:
+                site.name = self.cleaned_data.get('name')
+                site.domain = self.cleaned_data.get('domain')
+                site.save()
+            instance.save()
+        return instance

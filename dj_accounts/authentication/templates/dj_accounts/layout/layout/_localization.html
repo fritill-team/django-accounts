@@ -1,0 +1,5 @@
+{% load i18n %}
+{% get_current_language as LANGUAGE_CODE %}
+{% get_current_language_bidi as LANGUAGE_BIDI %}
+{{ LANGUAGE_BIDI }}
+{% if LANGUAGE_BIDI %} direction="rtl" dir="rtl" style="direction: rtl" {% else %} dir="ltr" {% endif %} lang="{{ LANGUAGE_CODE }}"

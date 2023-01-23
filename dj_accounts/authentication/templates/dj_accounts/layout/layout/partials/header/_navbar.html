@@ -1,0 +1,16 @@
+{% load static %}
+<div class="app-navbar flex-shrink-0">
+
+  <div class="app-navbar-item ms-1 ms-md-3">
+    {% include "dj_accounts/layout/partials/theme-mode/_main.html" %}
+  </div>
+  <div class="app-navbar-item ms-1 ms-md-3" id="kt_header_user_menu_toggle">
+    <div class="cursor-pointer symbol symbol-30px symbol-md-40px"
+         data-kt-menu-trigger="{default: 'click', lg: 'hover'}"
+         data-kt-menu-attach="parent"
+         data-kt-menu-placement="bottom-end">
+      <img src="{% static "dj_accounts/images/user.jpg" %}" alt="user"/>
+    </div>
+    {% include "dj_accounts/layout/partials/menus/_user-account-menu.html" %}
+  </div>
+</div>
