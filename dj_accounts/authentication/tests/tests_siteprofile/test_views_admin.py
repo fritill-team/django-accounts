@@ -53,6 +53,10 @@ class SiteViewGETTestCase(TestCase):
         self.assertIn('title', self.response.context)
         self.assertEqual(self.response.context.get('title'), _("Sites"))
 
+    def test_it_returns_can_delete_in_context(self):
+        self.assertIn('can_delete', self.response.context)
+        self.assertEqual(self.response.context.get('can_delete'), Site.objects.count() > 1)
+
     def test_it_returns_breadcrumb_in_context(self):
         self.assertIn('breadcrumb', self.response.context)
         self.assertListEqual(self.response.context.get("breadcrumb"), [
@@ -243,6 +247,11 @@ class SiteCreateOrUpdateViewGETTestCase(TestCase):
         self.assertIsInstance(response.context['form'], SiteProfileForm)
         self.assertEquals(response.context['form'].instance, self.test_site.siteprofile)
 
+    def test_it_creates_site_profile_for_site_if_not_exists(self):
+        self.client.get(self.create_url)
+        self.assertFalse(Site.objects.filter(siteprofile__isnull=True).exists())
+
+
 
 class SiteCreateOrUpdateViewPOSTTestCase(TestCase):
     def setUp(self):
@@ -405,4 +414,3 @@ class SiteDeleteViewPOSTTestCase(TestCase):
         self.assertEqual(1, len(messages))
         self.assertEqual(_("Site can not be deleted if it is the only site exists!"), str(messages[0]))
         self.assertTrue(Site.objects.filter(pk=1).exists())
-

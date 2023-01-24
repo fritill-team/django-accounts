@@ -3,7 +3,7 @@ from django.utils.translation import gettext_lazy as _
 LANGUAGE_CODE = 'en-us'
 
 FALLBACK_LOCALE = 'en-us'
-MAIN_LANGUAGE = 'ar'
+MAIN_LANGUAGE = 'en-us'
 LANGUAGES = [
     ("en-us", _("English United States")),
     ("en", _("English")),

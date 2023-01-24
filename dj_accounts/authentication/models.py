@@ -9,11 +9,31 @@ from translation.models import TranslatableModel
 
 class SiteProfile(TranslatableModel):
     translatable = {
-        "name": {"field": forms.CharField},
-        "address": {"field": forms.CharField, "widget": forms.Textarea},
-        "copyrights": {"field": forms.CharField, "widget": forms.Textarea},
-        "description": {"field": forms.CharField, "widget": forms.Textarea},
-        "keywords": {"field": forms.CharField, "widget": forms.Textarea},
+        "name": {"field": forms.CharField, "widget": forms.Textarea(attrs={
+            "class": "form-control bg-transparent",
+            "rows": 2,
+            "placeholder": _("Site Name")
+        })},
+        "address": {"field": forms.CharField, "widget": forms.Textarea(attrs={
+            "class": "form-control bg-transparent",
+            "rows": 2,
+            "placeholder": _("Address")
+        })},
+        "copyrights": {"field": forms.CharField, "widget": forms.Textarea(attrs={
+            "class": "form-control bg-transparent",
+            "rows": 2,
+            "placeholder": _("Copyrights")
+        })},
+        "description": {"field": forms.CharField, "widget": forms.Textarea(attrs={
+            "class": "form-control bg-transparent",
+            "rows": 2,
+            "placeholder": _("Description")
+        })},
+        "keywords": {"field": forms.CharField, "widget": forms.Textarea(attrs={
+            "class": "form-control bg-transparent",
+            "rows": 2,
+            "placeholder": _("Keywords")
+        })},
     }
 
     class Meta:

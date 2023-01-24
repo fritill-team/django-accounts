@@ -1,6 +1,12 @@
 {% load auth %}
 <div class="mb-8">
-  <label class="sr-only" for="{{ field.id_for_label }}">{{ field.label }}</label>
+  <label
+      for="{{ field.id_for_label }}"
+      {% if show_label %}
+      class="{% if  field.field.required %}required {% endif %}form-label"
+      {% else %}
+      class="sr-only"
+      {% endif %}>{{ field.label }}</label>
 
   {{ field }}
 

@@ -206,13 +206,19 @@ class VerifyPhoneForm(forms.Form):
 
 
 class SiteProfileForm(TranslatableModelForm):
-    domain = forms.URLField(required=True, initial="")
+    domain = forms.URLField(
+        required=True,
+        initial="",
+        widget=forms.TextInput(attrs={
+            "class": "form-control bg-transparent",
+            "placeholder": _("Domain")
+        }))
 
     class Meta:
         model = SiteProfile
         fields = ('domain', 'site', 'name', 'description', 'address', 'copyrights', 'keywords', 'logo')
         widgets = {
-            "site": forms.HiddenInput()
+            "site": forms.HiddenInput(),
         }
 
     def __init__(self, *args, **kwargs):
@@ -222,6 +228,8 @@ class SiteProfileForm(TranslatableModelForm):
         self.fields['copyrights'].required = False
         self.fields['address'].required = False
         self.fields['description'].required = False
+        if self.instance.pk:
+            self.fields['domain'].initial = self.instance.site.domain
 
     def save(self, commit=True):
         domain = self.cleaned_data.pop('domain')
@@ -236,7 +244,7 @@ class SiteProfileForm(TranslatableModelForm):
                 instance = site.siteprofile
             else:
                 site.name = self.cleaned_data.get('name')
-                site.domain = self.cleaned_data.get('domain')
+                site.domain = domain
                 site.save()
             instance.save()
         return instance

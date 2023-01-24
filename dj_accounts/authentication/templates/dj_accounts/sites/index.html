@@ -1,4 +1,5 @@
 {% extends "dj_accounts/layout/base.html" %}
+{% load i18n %}
 
 {% block content %}
   <div class="d-flex flex-column flex-lg-row">
@@ -6,9 +7,20 @@
       {% include "dj_accounts/sites/_site_list.html" %}
     </div>
     <div class="flex-lg-row-fluid ms-lg-5">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1>{{ title }}</h1>
+        <a href="{% url "create-site" %}"
+           class="btn btn-primary btn-sm">
+          {% trans "Add New Site" %}
+        </a>
+      </div>
       <div class="tab-content" id="myTabContent">
         {% include "dj_accounts/sites/_site_details.html" %}
       </div>
     </div>
   </div>
+{% endblock %}
+
+{% block modals %}
+  {% include "dj_accounts/sites/_modals.html" %}
 {% endblock %}

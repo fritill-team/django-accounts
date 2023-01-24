@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.contrib.sites.models import Site
@@ -7,6 +8,7 @@ from django.utils.translation import gettext as _
 from django.views import View
 
 from dj_accounts.authentication.forms import SiteProfileForm
+from dj_accounts.authentication.models import SiteProfile
 
 
 class SiteView(LoginRequiredMixin, PermissionRequiredMixin, View):
@@ -17,6 +19,7 @@ class SiteView(LoginRequiredMixin, PermissionRequiredMixin, View):
         return render(request, 'dj_accounts/sites/index.html', {
             "sites": sites,
             "title": _("Sites"),
+            "can_delete": sites.count() > 1,
             "breadcrumb": [
                 {"url": "/", "title": _("Home")},
                 {"title": _("Sites")},
@@ -51,6 +54,11 @@ class SiteCreateOrUpdateView(LoginRequiredMixin, PermissionRequiredMixin, View):
         }
 
     def get(self, request, *args, **kwargs):
+        for site in Site.objects.filter(siteprofile__isnull=True):
+            SiteProfile.objects.create(site=site, name={
+                settings.FALLBACK_LOCALE: site.name
+            })
+
         if kwargs.get('site_id', None):
             site = get_object_or_404(Site, pk=kwargs.get('site_id'))
             form = SiteProfileForm(instance=site.siteprofile)
