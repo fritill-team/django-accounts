@@ -3,11 +3,8 @@ import inspect
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import get_user_model
-from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.mixins import LoginRequiredMixin
-
 from django.test import TestCase, Client
-from django.test import override_settings
 from django.urls import reverse
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
@@ -16,16 +13,11 @@ from django.utils.translation import gettext_lazy as _
 from django.views import View
 
 from .factories import UserFactory
-from .forms import TestLoginForm
-from ..forms import MultipleLoginForm, RegisterForm, UserCreationForm
-from ..mixins import LoginGetFormClassMixin
-from ..views import LoginView, RegisterView, VerifyPhoneView, PhoneVerificationCompleteView, VerifyEmailView, \
-    EmailVerificationCompleteView, ResendEmailConfirmationLinkView, ResendPhoneConfirmationView
+from ..views import VerifyPhoneView, PhoneVerificationCompleteView, VerifyEmailView, \
+    EmailVerificationCompleteView, ResendEmailVerificationLinkView, ResendPhoneVerificationView
 from ...utils import account_activation_token
 
 UserModel = get_user_model()
-
-
 
 
 # phone views
@@ -158,26 +150,26 @@ class PhoneVerificationCompleteViewGETTestCase(TestCase):
         self.assertTemplateUsed(response, "dj_accounts/phone_verification_complete.html")
 
 
-class ResendPhoneConfirmationViewStructureTestCase(TestCase):
+class ResendPhoneVerificationViewStructureTestCase(TestCase):
     def test_it_extends_django_view_class(self):
-        self.assertTrue(issubclass(ResendPhoneConfirmationView, View))
+        self.assertTrue(issubclass(ResendPhoneVerificationView, View))
 
     def test_it_extends_login_required_mixin(self):
-        self.assertTrue(issubclass(ResendPhoneConfirmationView, LoginRequiredMixin))
+        self.assertTrue(issubclass(ResendPhoneVerificationView, LoginRequiredMixin))
 
     def test_view_has_method_get(self):
-        self.assertTrue(hasattr(ResendPhoneConfirmationView, 'get'))
+        self.assertTrue(hasattr(ResendPhoneVerificationView, 'get'))
 
     def test_view_has_method_get_is_callable(self):
-        self.assertTrue(callable(ResendPhoneConfirmationView.get))
+        self.assertTrue(callable(ResendPhoneVerificationView.get))
 
     def test_get_method_signature(self):
         expected_signature = ['self', 'request']
-        actual_signature = inspect.getfullargspec(ResendPhoneConfirmationView.get)[0]
+        actual_signature = inspect.getfullargspec(ResendPhoneVerificationView.get)[0]
         self.assertEquals(actual_signature, expected_signature)
 
 
-class ResendPhoneConfirmationViewTestCase(TestCase):
+class ResendPhoneVerificationViewTestCase(TestCase):
     def setUp(self):
         self.client = Client()
         self.user = UserFactory()
@@ -196,7 +188,7 @@ class ResendPhoneConfirmationViewTestCase(TestCase):
     def test_message_is_correct(self):
         response = self.client.get(self.url, follow=True)
         msgs = list(messages.get_messages(response.wsgi_request))
-        self.assertEquals(str(msgs[0]), _("A new confirmation code has been sent to your phone"))
+        self.assertEquals(str(msgs[0]), _("A new verification code has been sent to your phone"))
 
 
 # Email Verification
@@ -241,53 +233,6 @@ class VerifyEmailViewTestCase(TestCase):
         self.assertRedirects(confirm, reverse('email-verification-complete'))
 
 
-class EmailVerificationCompleteViewStructureTestCase(TestCase):
-    def test_it_extends_django_view_class(self):
-        self.assertTrue(issubclass(EmailVerificationCompleteView, View))
-
-    def test_it_extends_login_required_mixin(self):
-        self.assertTrue(issubclass(EmailVerificationCompleteView, LoginRequiredMixin))
-
-    def test_view_has_method_get(self):
-        self.assertTrue(hasattr(EmailVerificationCompleteView, 'get'))
-
-    def test_view_has_method_get_is_callable(self):
-        self.assertTrue(callable(EmailVerificationCompleteView.get))
-
-    def test_get_method_signature(self):
-        expected_signature = ['self', 'request']
-        actual_signature = inspect.getfullargspec(EmailVerificationCompleteView.get)[0]
-        self.assertEquals(actual_signature, expected_signature)
 
 
-class EmailVerificationCompleteViewGETTestCase(TestCase):
-    def setUp(self):
-        self.client = Client()
-        self.user = UserFactory()
-        self.client.login(email=self.user.email, password="secret")
-        self.url = reverse('email-verification-complete')
 
-    def test_it_redirects_to_login_if_user_is_not_logged_in(self):
-        self.client.logout()
-        response = self.client.get(self.url)
-        self.assertRedirects(response, reverse("login") + "?next=" + self.url, fetch_redirect_response=False)
-
-    def test_it_returns_phone_verification_complete_template(self):
-        response = self.client.get(self.url)
-        self.assertTemplateUsed(response, "dj_accounts/email_verification_complete.html")
-
-
-class ResendEmailConfirmationLinkViewStructureTestCase(TestCase):
-    def test_it_extends_django_view_class(self):
-        self.assertTrue(issubclass(ResendEmailConfirmationLinkView, View))
-
-    def test_view_has_method_get(self):
-        self.assertTrue(hasattr(ResendEmailConfirmationLinkView, 'get'))
-
-    def test_view_has_method_get_is_callable(self):
-        self.assertTrue(callable(ResendEmailConfirmationLinkView.get))
-
-    def test_get_method_signature(self):
-        expected_signature = ['self', 'request']
-        actual_signature = inspect.getfullargspec(ResendEmailConfirmationLinkView.get)[0]
-        self.assertEquals(actual_signature, expected_signature)

@@ -1,5 +1,6 @@
 import inspect
 
+from django.conf import settings
 from django.contrib.auth.mixins import PermissionRequiredMixin, LoginRequiredMixin
 from django.contrib.messages import get_messages
 from django.contrib.sites.models import Site
@@ -10,6 +11,7 @@ from django.views import View
 
 from ..factories import UserFactory
 from ...forms import SiteProfileForm
+from ...models import SiteProfile
 from ...views_admin import SiteView, SiteCreateOrUpdateView, SiteDeleteView
 
 
@@ -212,6 +214,16 @@ class SiteCreateOrUpdateViewGETTestCase(TestCase):
         self.assertIn('title', response.context)
         self.assertEqual(response.context.get('title'), _("Add New Site"))
 
+    def test_it_returns_site_in_context_with_none_value_for_create_request(self):
+        response = self.client.get(self.create_url)
+        self.assertIn('site', response.context)
+        self.assertEqual(response.context.get('site'), None)
+
+    def test_it_returns_site_in_context_with_value_for_update_request(self):
+        response = self.client.get(self.edit_url)
+        self.assertIn('site', response.context)
+        self.assertEqual(response.context.get('site'), self.test_site)
+
     def test_it_returns_edit_site_as_title_in_context_for_edit_request(self):
         response = self.client.get(self.edit_url)
         self.assertIn('title', response.context)
@@ -247,21 +259,18 @@ class SiteCreateOrUpdateViewGETTestCase(TestCase):
         self.assertIsInstance(response.context['form'], SiteProfileForm)
         self.assertEquals(response.context['form'].instance, self.test_site.siteprofile)
 
-    def test_it_creates_site_profile_for_site_if_not_exists(self):
-        self.client.get(self.create_url)
-        self.assertFalse(Site.objects.filter(siteprofile__isnull=True).exists())
-
-
 
 class SiteCreateOrUpdateViewPOSTTestCase(TestCase):
     def setUp(self):
         self.client = Client()
         self.create_url = reverse('create-site')
         self.test_site = Site.objects.create(domain="test.com", name="test")
+        # self.test_siteprofile = SiteProfile.objects.create(site=self.test_site,
+        #                                                    name={settings.FALLBACK_LOCALE: self.test_site.name})
         self.edit_url = reverse('edit-site', args=[self.test_site.id])
         self.client.force_login(UserFactory(is_superuser=True))
         self.data = {
-            "site_id": '1',
+            "site_id": 2,
             "domain": "test2.com",
             "name": "test2",
             "description": "test",
@@ -284,7 +293,7 @@ class SiteCreateOrUpdateViewPOSTTestCase(TestCase):
         response = self.client.post(reverse('edit-site', args=[6]), self.data)
         self.assertEquals(404, response.status_code)
 
-    def test_it_saves_new_instance_on_edit(self):
+    def test_it_updates_instance_on_edit(self):
         self.client.post(self.edit_url, self.data)
         self.test_site.refresh_from_db()
         self.assertTrue('test2', self.test_site.name)

@@ -6,6 +6,8 @@ from django.dispatch import receiver
 from django.utils.translation import gettext_lazy as _
 from translation.models import TranslatableModel
 
+from dj_accounts.authentication.signals import create_site_profile_created_site_signal
+
 
 class SiteProfile(TranslatableModel):
     translatable = {
@@ -56,9 +58,7 @@ class SiteProfile(TranslatableModel):
         return self.translated_name
 
 
-@receiver(post_save, sender=Site)
-def create_site_profile_created_site_signal(sender, instance, created, **kwargs):
-    if created:
-        instance.siteprofile = SiteProfile.objects.create(
-            site=instance,
-            name=instance.name)
+post_save.connect(create_site_profile_created_site_signal, sender=Site)
+
+
+

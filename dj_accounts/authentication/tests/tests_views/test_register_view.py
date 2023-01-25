@@ -140,15 +140,15 @@ class RegisterViewPOSTTestCase(TestCase):
         response = self.client.get(self.url)
         self.assertIsInstance(response.context['form'], RegisterForm)
 
-    @patch('dj_accounts.authentication.mixins.RegisterMixin.get_register_callback', autospec=True)
-    def test_it_calls_get_register_callback(self, mock_get_register_callback):
+    @patch('dj_accounts.authentication.mixins.ViewCallbackMixin.get_callback', autospec=True)
+    def test_it_calls_get_callback(self, mock_get_callback):
         self.client.post(self.url, self.data)
-        self.assertTrue(mock_get_register_callback.called)
+        self.assertTrue(mock_get_callback.called)
 
-    @patch('dj_accounts.authentication.mixins.RegisterMixin.send_email_confirmation', autospec=True)
-    def test_it_calls_send_mail_confirmation_function(self, mock_send_email_confirmation):
+    @patch('dj_accounts.authentication.mixins.RegisterMixin.send_email_verification', autospec=True)
+    def test_it_calls_send_mail_verification_function(self, mock_send_email_verification):
         self.client.post(self.url, self.data)
-        self.assertTrue(mock_send_email_confirmation.called)
+        self.assertTrue(mock_send_email_verification.called)
 
     @patch('dj_accounts.authentication.mixins.RegisterMixin.send_phone_verification', autospec=True)
     def test_it_calls_send_phone_verification_function(self, mock_send_phone_verification):

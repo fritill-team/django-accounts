@@ -54,11 +54,7 @@ class SiteCreateOrUpdateView(LoginRequiredMixin, PermissionRequiredMixin, View):
         }
 
     def get(self, request, *args, **kwargs):
-        for site in Site.objects.filter(siteprofile__isnull=True):
-            SiteProfile.objects.create(site=site, name={
-                settings.FALLBACK_LOCALE: site.name
-            })
-
+        site = None
         if kwargs.get('site_id', None):
             site = get_object_or_404(Site, pk=kwargs.get('site_id'))
             form = SiteProfileForm(instance=site.siteprofile)
@@ -67,13 +63,21 @@ class SiteCreateOrUpdateView(LoginRequiredMixin, PermissionRequiredMixin, View):
 
         return render(request, 'dj_accounts/sites/form.html', {
             "form": form,
+            "site": site,
             **self.get_context_data()
         })
 
     def post(self, request, *args, **kwargs):
+        site = None
         if kwargs.get('site_id', None):
             site = get_object_or_404(Site, pk=kwargs.get('site_id'))
-            form = SiteProfileForm(request.POST, request.FILES, instance=site.siteprofile)
+            print(site.siteprofile.__dict__)
+            print(request.POST)
+
+            form = SiteProfileForm(request.POST, request.FILES, instance=site.siteprofile, initial={
+                'site': site.id
+            })
+            print(form.instance.__dict__)
             message = _("Site Updated Successfully!")
         else:
             form = SiteProfileForm(request.POST, request.FILES)
@@ -86,6 +90,7 @@ class SiteCreateOrUpdateView(LoginRequiredMixin, PermissionRequiredMixin, View):
 
         return render(request, 'dj_accounts/sites/form.html', {
             "form": form,
+            "site": site,
             **self.get_context_data()
         })
 

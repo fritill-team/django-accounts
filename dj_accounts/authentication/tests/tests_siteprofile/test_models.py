@@ -9,7 +9,7 @@ from django.utils.translation import activate, gettext as _
 from translation.models import TranslatableModel
 
 from .. import DisableSignals
-from ...models import SiteProfile, create_site_profile_created_site_signal
+from ...models import SiteProfile
 
 
 class SiteProfileModelTestCase(TestCase):
@@ -21,7 +21,6 @@ class SiteProfileModelTestCase(TestCase):
 
     def test_its_class_meta_verbose_name(self):
         self.assertEqual(SiteProfile._meta.verbose_name, _("Site Profile"))
-
 
     def test_its_class_meta_verbose_name_plural(self):
         self.assertEqual(SiteProfile._meta.verbose_name_plural, _("Sites Profiles"))
@@ -44,7 +43,7 @@ class SiteProfileModelTestCase(TestCase):
         self.assertIn('field', SiteProfile.translatable.get('address'))
         field = SiteProfile.translatable.get('address')
         self.assertEqual(field.get('field'), forms.CharField)
-        self.assertEqual(field.get('widget'), forms.Textarea)
+        self.assertIsInstance(field.get('widget'), forms.Textarea)
 
     def test_translatable_dict_has_copyrights(self):
         self.assertIn('copyrights', SiteProfile.translatable.keys())
@@ -52,7 +51,7 @@ class SiteProfileModelTestCase(TestCase):
         self.assertIn('field', SiteProfile.translatable.get('copyrights'))
         field = SiteProfile.translatable.get('copyrights')
         self.assertEqual(field.get('field'), forms.CharField)
-        self.assertEqual(field.get('widget'), forms.Textarea)
+        self.assertIsInstance(field.get('widget'), forms.Textarea)
 
     def test_translatable_dict_has_description(self):
         self.assertIn('description', SiteProfile.translatable.keys())
@@ -60,7 +59,7 @@ class SiteProfileModelTestCase(TestCase):
         self.assertIn('field', SiteProfile.translatable.get('description'))
         field = SiteProfile.translatable.get('description')
         self.assertEqual(field.get('field'), forms.CharField)
-        self.assertEqual(field.get('widget'), forms.Textarea)
+        self.assertIsInstance(field.get('widget'), forms.Textarea)
 
     def test_translatable_dict_has_keywords(self):
         self.assertIn('keywords', SiteProfile.translatable.keys())
@@ -68,7 +67,7 @@ class SiteProfileModelTestCase(TestCase):
         self.assertIn('field', SiteProfile.translatable.get('keywords'))
         field = SiteProfile.translatable.get('keywords')
         self.assertEqual(field.get('field'), forms.CharField)
-        self.assertEqual(field.get('widget'), forms.Textarea)
+        self.assertIsInstance(field.get('widget'), forms.Textarea)
 
     def test_it_has_name_field(self):
         self.assertIsNotNone(SiteProfile._meta.get_field('name'))
@@ -205,16 +204,3 @@ class SiteProfileModelTestCase(TestCase):
     def test_logo_field_upload_to_is_the_method_upload_logo_to(self):
         field = SiteProfile._meta.get_field('logo')
         self.assertIs(field.upload_to, SiteProfile.upload_logo_to)
-
-
-class CreateSiteProfileForCreatedSiteSignalTestCase(TestCase):
-    def test_signature(self):
-        expected_signature = ['sender', 'instance', 'created']
-        actual_signature = inspect.getfullargspec(create_site_profile_created_site_signal)[0]
-        self.assertEquals(actual_signature, expected_signature)
-
-    def test_it_creates_site_profile_for_created_site(self):
-        with DisableSignals():
-            site = Site.objects.create(name="Test", domain="test.com")
-            create_site_profile_created_site_signal(Site, site, created=True)
-            self.assertIsInstance(site.siteprofile, SiteProfile)

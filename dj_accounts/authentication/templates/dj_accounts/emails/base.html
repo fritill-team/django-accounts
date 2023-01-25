@@ -1,4 +1,4 @@
-{% load static %}
+{% load i18n static %}
 <!doctype html>
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
@@ -18,8 +18,12 @@
     <tbody>
     <tr>
       <td align="center" valign="center" style="text-align:center; padding: 40px">
-        <a href="{{ protocol }}://{{ domain }}" rel="noopener" target="_blank">
-          <img alt="Logo" src="{% static "dj_accounts/images/logo-dark.svg" %}"/>
+        <a href="{{ protocol }}://{{ site.domain }}" rel="noopener" target="_blank">
+          {% if site.siteprofile.logo %}
+            <img alt="Logo" src="{{ protocol }}://{{ site.domain }}/{{ site.siteprofile.logo.url }}"/>
+          {% else %}
+            <img alt="Logo" src="{{ protocol }}://{{ site.domain }}/{% static "dj_accounts/images/logo-dark.svg" %}"/>
+          {% endif %}
         </a>
       </td>
     </tr>
@@ -28,9 +32,10 @@
 
     <tr>
       <td align="center" valign="center" style="font-size: 13px; text-align:center;padding: 20px; color: #6d6e7c;">
-        <p>Floor 5, 450 Avenue of the Red Field, SF, 10050, USA.</p>
-        <p>Copyright &copy;
-          <a href="https://keenthemes.com" rel="noopener" target="_blank">Keenthemes</a>.</p>
+        <p>{{ site.siteprofile.translated_address }}</p>
+        <p>{% trans "Copyright" %} &copy;
+          <a href="{{ protocol }}://{{ domain }}" rel="noopener"
+             target="_blank">{{ site.siteprofile.translated_copyrights }}</a>.</p>
       </td>
     </tr>
     </tbody>

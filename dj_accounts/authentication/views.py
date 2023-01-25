@@ -9,16 +9,14 @@ from django.contrib.auth.views import LoginView as BaseLoginView
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from django.urls import reverse
-from django.utils.encoding import force_text
-from django.utils.http import urlsafe_base64_decode
 from django.utils.timezone import now
 from django.utils.translation import gettext as _
-from django.utils.translation import gettext_lazy as _
 from django.views import View
 
-from dj_accounts.utils import account_activation_token, send_email_confirmation, get_settings_value
+from dj_accounts.utils import get_settings_value
 from .forms import VerifyPhoneForm
-from .mixins import LoginGetFormClassMixin, RegisterMixin
+from .mixins import LoginGetFormClassMixin, RegisterMixin, SendEmailVerificationMixin, ViewCallbackMixin, \
+    VerifyEmailMixin
 from .verify_phone import VerifyPhone
 
 UserModel = get_user_model()
@@ -39,7 +37,7 @@ class SendMail(View):
     def get(self, request):
         user = UserModel.objects.get(pk=1)
         try:
-            RegisterMixin().send_email_confirmation(request, user)
+            RegisterMixin().send_email_verification(request, user)
         except Exception as e:
             print(e)
         return HttpResponse("<p>Sent</p>")
@@ -68,9 +66,9 @@ class RegisterView(RegisterMixin, View):
             user = form.save()
             login(self.request, user)
 
-            self.get_register_callback(user)
+            self.get_callback('REGISTER_CALLBACK', user)
 
-            self.send_email_confirmation(request, user)
+            self.send_email_verification(request, user)
 
             self.send_phone_verification(user)
 
@@ -78,6 +76,33 @@ class RegisterView(RegisterMixin, View):
                 return redirect(request.POST.get('next'))
             return redirect(settings.LOGIN_REDIRECT_URL)
         return render(self.request, self.get_template_name(), {"form": form})
+
+
+class ResendEmailVerificationLinkView(SendEmailVerificationMixin, ViewCallbackMixin, LoginRequiredMixin, View):
+    def get(self, request, *args, **kwargs):
+        self.send_email_verification(request, request.user)
+
+        self.get_callback('REGISTER_CALLBACK', request.user)
+
+        return redirect(request.GET.get('next', settings.LOGIN_REDIRECT_URL))
+
+
+class VerifyEmailView(VerifyEmailMixin, ViewCallbackMixin, View):
+    def get(self, request, uidb64, token):
+        success, user = self.verify(uidb64, token)
+        self.get_callback("VERIFY_EMAIL_CALLBACK", user)
+        return redirect('email-verification-complete')
+
+
+class EmailVerificationCompleteView(LoginRequiredMixin, View):
+    def get_template_name(self):
+        return 'dj_accounts/authentication/themes/{}/email_verification_complete.html'.format(
+            get_settings_value('AUTHENTICATION_THEME', 'corporate'))
+
+    def get(self, request):
+        return render(request, self.get_template_name(), {
+            'verified': request.user.email_verified_at
+        })
 
 
 class VerifyPhoneView(LoginRequiredMixin, View):
@@ -107,7 +132,7 @@ class PhoneVerificationCompleteView(LoginRequiredMixin, View):
         return render(request, "dj_accounts/phone_verification_complete.html")
 
 
-class ResendPhoneConfirmationView(LoginRequiredMixin, View):
+class ResendPhoneVerificationView(LoginRequiredMixin, View):
 
     def get(self, request, *args, **kwargs):
         try:
@@ -118,40 +143,5 @@ class ResendPhoneConfirmationView(LoginRequiredMixin, View):
             parts.extend(traceback.format_exception(*sys.exc_info())[1:])
             print("".join(parts))
 
-        messages.success(request, _("A new confirmation code has been sent to your phone"))
+        messages.success(request, _("A new verification code has been sent to your phone"))
         return redirect(reverse("verify-phone"))
-
-
-class VerifyEmailView(LoginRequiredMixin, View):
-    def get(self, request, uidb64, token):
-        try:
-            uid = force_text(urlsafe_base64_decode(uidb64))
-            user = UserModel.objects.get(pk=uid)
-        except(TypeError, ValueError, OverflowError, UserModel.DoesNotExist):
-            user = None
-        if user is not None and account_activation_token.check_token(user, token):
-            user.email_verified_at = now()
-            user.save()
-
-        return redirect('email-verification-complete')
-
-
-class EmailVerificationCompleteView(LoginRequiredMixin, View):
-    def get(self, request):
-        return render(request, 'dj_accounts/email_verification_complete.html', {
-            'verified': request.user.email_verified_at
-        })
-
-
-class ResendEmailConfirmationLinkView(View):
-    def get(self, request, *args, **kwargs):
-        try:
-            send_email_confirmation(request, request.user)
-        except Exception as e:
-            parts = ["Traceback (most recent call last):\n"]
-            parts.extend(traceback.format_stack(limit=25)[:-2])
-            parts.extend(traceback.format_exception(*sys.exc_info())[1:])
-            print("".join(parts))
-
-        messages.success(request, 'email verification is sent successfully')
-        return redirect(kwargs['next'])

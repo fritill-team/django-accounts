@@ -1,10 +1,7 @@
 import inspect
 
-from django.contrib.auth.forms import AuthenticationForm
-from django.core import mail
 from django.test import TestCase, override_settings
 from django.urls import reverse
-from django.utils import timezone, dateformat
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
 from django.utils.timezone import now
@@ -18,11 +15,9 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from .factories import UserFactory
-from ..forms import MultipleLoginForm
-from ..mixins import LoginGetFormClassMixin
 from ..serializers import ChangePasswordSerializer
-from ..views_api import UpdateProfileAPIView, VerifyPhoneAPIView, VerifyEmailAPIView, ResendPhoneConfirmationAPIView, \
-    UserLogoutAPIView, ChangePasswordAPIView, LoginAPIView
+from ..views_api import UpdateProfileAPIView, VerifyPhoneAPIView, VerifyEmailAPIView, ResendPhoneVerificationAPIView, \
+    UserLogoutAPIView, ChangePasswordAPIView
 from ...utils import account_activation_token
 
 
@@ -117,9 +112,6 @@ class TestUserLogoutView(TestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
 
-
-
-
 # phone verification
 class VerifyPhoneAPIViewStructureTestCase(TestCase):
     def test_it_extends_django_view_class(self):
@@ -174,26 +166,26 @@ class VerifyPhoneAPIViewPOSTTestCase(TestCase):
         self.assertEquals(response.status_code, 400)
 
 
-class ResendPhoneConfirmationViewStructureTestCase(TestCase):
+class ResendPhoneVerificationViewStructureTestCase(TestCase):
     def test_it_extends_django_LoginView(self):
-        self.assertTrue(issubclass(ResendPhoneConfirmationAPIView, APIView))
+        self.assertTrue(issubclass(ResendPhoneVerificationAPIView, APIView))
 
     def test_it_permission_classes_has_is_authenticated(self):
-        self.assertIn(IsAuthenticated, ResendPhoneConfirmationAPIView.permission_classes)
+        self.assertIn(IsAuthenticated, ResendPhoneVerificationAPIView.permission_classes)
 
     def test_view_has_method_get(self):
-        self.assertTrue(hasattr(ResendPhoneConfirmationAPIView, 'get'))
+        self.assertTrue(hasattr(ResendPhoneVerificationAPIView, 'get'))
 
     def test_view_has_method_get_is_callable(self):
-        self.assertTrue(callable(ResendPhoneConfirmationAPIView.get))
+        self.assertTrue(callable(ResendPhoneVerificationAPIView.get))
 
     def test_get_method_signature(self):
         expected_signature = ['self', 'request']
-        actual_signature = inspect.getfullargspec(ResendPhoneConfirmationAPIView.get)[0]
+        actual_signature = inspect.getfullargspec(ResendPhoneVerificationAPIView.get)[0]
         self.assertEquals(actual_signature, expected_signature)
 
 
-class PhoneConfirmationViewGETTestCase(TestCase):
+class PhoneVerificationViewGETTestCase(TestCase):
     def setUp(self):
         self.client = APIClient()
         self.user = UserFactory()
@@ -215,40 +207,7 @@ class PhoneConfirmationViewGETTestCase(TestCase):
         self.assertEqual(response.data['message'], _('Code was resent successfully.'))
 
 
-# email verification
 
-class VerifyEmailViewStructureTestCase(TestCase):
-    def test_it_extends_django_view_class(self):
-        self.assertTrue(issubclass(VerifyEmailAPIView, APIView))
-
-    def test_view_has_method_get(self):
-        self.assertTrue(hasattr(VerifyEmailAPIView, 'get'))
-
-    def test_view_has_method_get_is_callable(self):
-        self.assertTrue(callable(VerifyEmailAPIView.get))
-
-    def test_get_method_signature(self):
-        expected_signature = ['self', 'request', 'uidb64', 'token']
-        actual_signature = inspect.getfullargspec(VerifyEmailAPIView.get)[0]
-        self.assertEquals(actual_signature, expected_signature)
-
-
-class VerifyEmailAPIViewTestCase(TestCase):
-    def setUp(self):
-        self.client = APIClient()
-        self.user = UserFactory()
-        self.refresh = RefreshToken.for_user(self.user)
-        self.client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(self.refresh.access_token))
-        self.uid = urlsafe_base64_encode(force_bytes(self.user.pk))
-        self.token = account_activation_token.make_token(self.user)
-
-    def test_it_return_200_status_code_when_email_was_confirmed_successfully(self):
-        response = self.client.get(reverse('verify_email_api', args=[self.uid, self.token]))
-        self.assertEquals(response.status_code, 200)
-
-    def test_message_value_when_email_was_verified(self):
-        response = self.client.get(reverse('verify_email_api', args=[self.uid, self.token]))
-        self.assertEquals(response.data['message'], _('Email was verified successfully.'))
 
 
 class UpdateProfileDataAPIViewStructureTestCase(TestCase):

@@ -1,5 +1,5 @@
 from .views_api import VerifyPhoneAPIView, \
-    VerifyEmailAPIView, ResendPhoneConfirmationAPIView, RegisterAPIView, ResendEmailConfirmationLinkAPIView, \
+    VerifyEmailAPIView, ResendPhoneVerificationAPIView, RegisterAPIView, ResendEmailVerificationLinkAPIView, \
     UserLogoutAPIView, PasswordResetAPIView, LoginAPIView, ChangePasswordAPIView
 from django.urls import path
 from rest_framework_simplejwt.views import TokenRefreshView
@@ -17,10 +17,11 @@ urlpatterns = [
     path('password_reset/', PasswordResetAPIView.as_view(), name='password_reset_api'),
 
     # email verification
-    path('verify/email/<str:uidb64>/<str:token>/', VerifyEmailAPIView.as_view(), name='verify_email_api'),
-    path('resend_email_activation/', ResendEmailConfirmationLinkAPIView.as_view(), name='resend_email_activation_api'),
+    path('verify/email/resend/', ResendEmailVerificationLinkAPIView.as_view(),
+         name='api_resend_email_verification'),
+    path('verify/email/<str:uidb64>/<str:token>/', VerifyEmailAPIView.as_view(), name='api_verify_email'),
 
     # phone verification
     path('verify/phone/', VerifyPhoneAPIView.as_view(), name='verify_phone_api'),
-    path('resend_phone_activation/', ResendPhoneConfirmationAPIView.as_view(), name='resend_phone_activation_api'),
+    path('resend_phone_activation/', ResendPhoneVerificationAPIView.as_view(), name='resend_phone_activation_api'),
 ]

@@ -28,3 +28,11 @@ class DisableSignals(object):
     def reconnect(self, signal):
         signal.receivers = self.stashed_signals.get(signal, [])
         del self.stashed_signals[signal]
+
+
+def authenticate_api_user(client, user, ):
+    from rest_framework_simplejwt.tokens import RefreshToken
+
+    refresh = RefreshToken.for_user(user)
+    client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(refresh.access_token))
+    return client

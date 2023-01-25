@@ -9,7 +9,6 @@ from django.utils.encoding import force_text
 from django.utils.http import urlsafe_base64_decode
 from django.utils.timezone import now
 from django.utils.translation import gettext as _
-from django.utils.translation import gettext_lazy as _
 from rest_framework import status
 from rest_framework.generics import UpdateAPIView
 from rest_framework.permissions import IsAuthenticated
@@ -18,10 +17,11 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from .forms import VerifyPhoneForm
-from .mixins import LoginGetFormClassMixin, RegisterMixin
+from .mixins import LoginGetFormClassMixin, RegisterMixin, SendEmailVerificationMixin, ViewCallbackMixin, \
+    VerifyEmailMixin
 from .serializers import LogoutSerializer, PasswordResetSerializer, ChangePasswordSerializer
 from .verify_phone import VerifyPhone
-from ..utils import account_activation_token, send_email_confirmation, get_user_tokens, get_errors
+from ..utils import account_activation_token, get_user_tokens, get_errors
 
 UserModel = get_user_model()
 
@@ -53,9 +53,9 @@ class RegisterAPIView(RegisterMixin, APIView):
         if form.is_valid():
             user = form.save()
 
-            self.get_register_callback(user)
+            self.get_callback('REGISTER_CALLBACK', user)
 
-            self.send_email_confirmation(request, user)
+            self.send_email_verification(request, user)
 
             self.send_phone_verification(user)
 
@@ -67,6 +67,28 @@ class RegisterAPIView(RegisterMixin, APIView):
             }, status=status.HTTP_201_CREATED)
 
         return Response(form.errors, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
+
+
+class ResendEmailVerificationLinkAPIView(SendEmailVerificationMixin, ViewCallbackMixin, APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        self.send_email_verification(request, request.user)
+
+        self.get_callback('REGISTER_CALLBACK', request.user)
+
+        return Response({
+            "message": _('Email activation link sent successfully')
+        })
+
+
+class VerifyEmailAPIView(VerifyEmailMixin, ViewCallbackMixin,APIView):
+    def get(self, request, uidb64, token):
+        success, user = self.verify(uidb64, token)
+        self.get_callback("VERIFY_EMAIL_CALLBACK", user)
+        if success:
+            return Response({"message": _('Email was verified successfully.')}, status=status.HTTP_200_OK)
+        return Response({"message": _('Something went wrong, please try again!')}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class UserLogoutAPIView(APIView):
@@ -142,7 +164,7 @@ class VerifyPhoneAPIView(APIView):
         return Response(form.errors, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
 
 
-class ResendPhoneConfirmationAPIView(APIView):
+class ResendPhoneVerificationAPIView(APIView):
     permission_classes = (IsAuthenticated,)
 
     def get(self, request, *args, **kwargs):
@@ -155,35 +177,6 @@ class ResendPhoneConfirmationAPIView(APIView):
             print("".join(parts))
 
         return Response({"message": _('Code was resent successfully.')}, status=status.HTTP_200_OK)
-
-
-# email verification
-class ResendEmailConfirmationLinkAPIView(APIView):
-    def get(self, request, *args, **kwargs):
-        try:
-            send_email_confirmation(request, request.user)
-        except Exception as e:
-            parts = ["Traceback (most recent call last):\n"]
-            parts.extend(traceback.format_stack(limit=25)[:-2])
-            parts.extend(traceback.format_exception(*sys.exc_info())[1:])
-            print("".join(parts))
-
-        return Response({"message": _('Email activation link resent successfully')})
-
-
-class VerifyEmailAPIView(APIView):
-    permission_classes = (IsAuthenticated,)
-
-    def get(self, request, uidb64, token):
-        try:
-            uid = force_text(urlsafe_base64_decode(uidb64))
-            user = UserModel.objects.get(pk=uid)
-        except(TypeError, ValueError, OverflowError, UserModel.DoesNotExist):
-            user = None
-        if user is not None and account_activation_token.check_token(user, token):
-            user.email_verified_at = now()
-            user.save()
-        return Response({"message": _('Email was verified successfully.')}, status=status.HTTP_200_OK)
 
 
 class UpdateProfileAPIView(APIView):

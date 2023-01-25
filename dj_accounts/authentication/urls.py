@@ -1,8 +1,8 @@
 from django.contrib.auth import views as auth_views
 from django.urls import path, reverse_lazy
 
-from .views import LoginView, RegisterView, ResendEmailConfirmationLinkView, VerifyEmailView, \
-    EmailVerificationCompleteView, VerifyPhoneView, PhoneVerificationCompleteView, ResendPhoneConfirmationView, SendMail
+from .views import LoginView, RegisterView, ResendEmailVerificationLinkView, VerifyEmailView, \
+    EmailVerificationCompleteView, VerifyPhoneView, PhoneVerificationCompleteView, ResendPhoneVerificationView, SendMail
 
 urlpatterns = [
     path('send/', SendMail.as_view(), name="send-mail"),
@@ -11,14 +11,14 @@ urlpatterns = [
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),
 
     # email urls
-    path('verify/email/', ResendEmailConfirmationLinkView.as_view(), name='resend-email-confirmation'),
+    path('verify/email/resend/', ResendEmailVerificationLinkView.as_view(), name='resend-email-verification'),
+    path('verify/email/complete/', EmailVerificationCompleteView.as_view(), name='email-verification-complete'),
     path('verify/email/<str:uidb64>/<str:token>/', VerifyEmailView.as_view(), name='verify-email'),
-    path('verify/email/complete', EmailVerificationCompleteView.as_view(), name='email-verification-complete'),
 
     # phone urls
     path('verify/phone/', VerifyPhoneView.as_view(), name='verify-phone'),
     path('verify/phone/complete', PhoneVerificationCompleteView.as_view(), name='phone-verification-complete'),
-    path('resend_phone_activation/', ResendPhoneConfirmationView.as_view(), name='resend_phone_activation'),
+    path('resend_phone_activation/', ResendPhoneVerificationView.as_view(), name='resend_phone_activation'),
 
     # password urls
     path('password_change/', auth_views.PasswordChangeView.as_view(), name='password_change'),

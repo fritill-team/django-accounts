@@ -21,7 +21,7 @@ class TokenGenerator(PasswordResetTokenGenerator):
 account_activation_token = TokenGenerator()
 
 
-def send_email_confirmation(request, user):
+def send_email_verification(request, user):
     current_site = get_current_site(request)
     mail_subject = _('Activate your account.')
     message = render_to_string('dj_accounts/emails/email_confirmation.html', {

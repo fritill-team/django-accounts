@@ -11,7 +11,7 @@
     <form
         enctype="multipart/form-data"
         {% if form.instance.pk %}
-        action="{% url "edit-site" form.instance.site.pk %}"
+        action="{% url "edit-site" site.id %}"
         {% else %}
         action="{% url "create-site" %}"
         {% endif %}
