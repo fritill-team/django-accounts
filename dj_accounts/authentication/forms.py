@@ -116,6 +116,14 @@ class UserCreationForm(BaseUserCreationForm):
             })
         }
 
+    def is_valid(self):
+        result = super().is_valid()
+        # loop on *all* fields if key '__all__' found else only on errors:
+        for x in (self.fields if '__all__' in self.errors else self.errors):
+            attrs = self.fields[x].widget.attrs
+            attrs.update({'class': attrs.get('class', '') + ' is-invalid'})
+        return result
+
 
 class RegisterForm(UserCreationForm):
     username = forms.CharField(
@@ -165,14 +173,6 @@ class RegisterForm(UserCreationForm):
 
     class Meta(UserCreationForm.Meta):
         fields = UserCreationForm.Meta.fields + ("username", "first_name", "last_name", 'email', 'phone',)
-
-    def is_valid(self):
-        result = super().is_valid()
-        # loop on *all* fields if key '__all__' found else only on errors:
-        for x in (self.fields if '__all__' in self.errors else self.errors):
-            attrs = self.fields[x].widget.attrs
-            attrs.update({'class': attrs.get('class', '') + ' is-invalid'})
-        return result
 
     def clean_phone(self):
         phone = self.cleaned_data['phone']
