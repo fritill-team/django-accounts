@@ -2,10 +2,9 @@ from django.contrib.auth import views as auth_views
 from django.urls import path, reverse_lazy
 
 from .views import LoginView, RegisterView, ResendEmailVerificationLinkView, VerifyEmailView, \
-    EmailVerificationCompleteView, VerifyPhoneView, PhoneVerificationCompleteView, ResendPhoneVerificationView, SendMail
+    EmailVerificationCompleteView, VerifyPhoneView, ResendPhoneVerificationView
 
 urlpatterns = [
-    path('send/', SendMail.as_view(), name="send-mail"),
     path('login/', LoginView.as_view(), name="login"),
     path('register/', RegisterView.as_view(), name='register'),
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),
@@ -17,7 +16,6 @@ urlpatterns = [
 
     # phone urls
     path('verify/phone/', VerifyPhoneView.as_view(), name='verify-phone'),
-    path('verify/phone/complete', PhoneVerificationCompleteView.as_view(), name='phone-verification-complete'),
     path('resend_phone_activation/', ResendPhoneVerificationView.as_view(), name='resend_phone_activation'),
 
     # password urls

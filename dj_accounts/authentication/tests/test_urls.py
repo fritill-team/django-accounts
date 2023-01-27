@@ -2,10 +2,10 @@ from django.contrib.auth import views
 from django.test import TestCase
 from django.urls import resolve, reverse
 
-from ..views import ResendPhoneVerificationView, VerifyPhoneView, PhoneVerificationCompleteView, LoginView, \
+from ..views import ResendPhoneVerificationView, VerifyPhoneView, LoginView, \
     RegisterView, ResendEmailVerificationLinkView as EmailVerificationView
 from ..views_admin import SiteView, SiteCreateOrUpdateView, SiteDeleteView
-from ..views_api import UpdateProfileAPIView, VerifyPhoneAPIView, \
+from ..views_api import VerifyPhoneAPIView, \
     ResendPhoneVerificationAPIView, VerifyEmailAPIView, ResendEmailVerificationLinkAPIView, ChangePasswordAPIView, \
     LoginAPIView
 
@@ -32,11 +32,6 @@ class SiteUrlsTestCase(TestCase):
         url = reverse("resend_phone_activation")
         self.assertEquals(resolve(url).func.view_class, ResendPhoneVerificationView)
 
-    def test_phone_verify_complete_url_resolves(self):
-        url = reverse("phone-verification-complete")
-        self.assertEquals(resolve(url).func.view_class, PhoneVerificationCompleteView)
-
-    # Email Verification
     def test_resend_email_verification_link_url_resolves(self):
         url = reverse("resend-email-verification")
         self.assertEquals(resolve(url).func.view_class, EmailVerificationView)
@@ -56,7 +51,6 @@ class APIUrlsTestCase(TestCase):
         url = reverse('api_resend_email_verification')
         self.assertEqual(resolve(url).func.view_class, ResendEmailVerificationLinkAPIView)
 
-    # phone verification
     def test_phone_verify_url_resolves(self):
         url = reverse("verify_phone_api")
         self.assertEquals(resolve(url).func.view_class, VerifyPhoneAPIView)

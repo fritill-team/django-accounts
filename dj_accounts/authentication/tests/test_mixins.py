@@ -8,9 +8,9 @@ from django.test import TestCase, override_settings, RequestFactory
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
 
-from ..forms import MultipleLoginForm, RegisterForm, UserCreationForm
+from ..forms import MultipleLoginForm, RegisterForm, UserCreationForm, VerifyPhoneForm
 from ..mixins import LoginGetFormClassMixin, RegisterMixin, SendEmailVerificationMixin, ViewCallbackMixin, \
-    VerifyEmailMixin
+    VerifyEmailMixin, SendPhoneVerificationMixin
 from ..tests.factories import UserFactory
 from ..tests.forms import TestLoginForm
 from ...utils import account_activation_token
@@ -47,6 +47,9 @@ class RegisterMixinStructureTestCase(TestCase):
     def test_it_extends_SendEmailVerificationMixin_class(self):
         self.assertTrue(issubclass(RegisterMixin, SendEmailVerificationMixin))
 
+    def test_it_extends_SendPhoneVerificationMixin_class(self):
+        self.assertTrue(issubclass(RegisterMixin, SendPhoneVerificationMixin))
+
     def test_it_extends_ViewCallbackMixin_class(self):
         self.assertTrue(issubclass(RegisterMixin, ViewCallbackMixin))
 
@@ -60,24 +63,6 @@ class RegisterMixinStructureTestCase(TestCase):
         expected_signature = ['self']
         actual_signature = inspect.getfullargspec(RegisterMixin.get_form_class)[0]
         self.assertEquals(actual_signature, expected_signature)
-
-    def test_it_has_send_phone_verification_method(self):
-        self.assertIn('send_phone_verification', dict(inspect.getmembers(RegisterMixin)))
-
-    def test_send_phone_verification_is_callable(self):
-        self.assertTrue(callable(RegisterMixin.send_phone_verification))
-
-    def test_send_phone_verification_method_signature(self):
-        expected_signature = ['self', 'user']
-        actual_signature = inspect.getfullargspec(RegisterMixin.send_phone_verification)[0]
-        self.assertEquals(actual_signature, expected_signature)
-
-
-class RegisterMixinSendPhoneVerificationTestCase(TestCase):
-    @patch('dj_accounts.authentication.verify_phone.VerifyPhone.send', autospec=True)
-    def test_it_calls_send_phone_verification(self, mock_send):
-        RegisterMixin().send_phone_verification(UserFactory())
-        self.assertTrue(mock_send.called)
 
 
 class RegisterGetFormClassMixinTestCase(TestCase):
@@ -163,3 +148,23 @@ class VerifyEmailMixinTestCase(TestCase):
 
         VerifyEmailMixin().verify(self.uid, 'not-valid')
         self.assertIsNone(self.user.email_verified_at)
+
+
+class SendPhoneVerificationMixinTestCase(TestCase):
+    def test_it_has_send_phone_verification_method(self):
+        self.assertIn('send_phone_verification', dict(inspect.getmembers(SendPhoneVerificationMixin)))
+
+    def test_send_phone_verification_is_callable(self):
+        self.assertTrue(callable(SendPhoneVerificationMixin.send_phone_verification))
+
+    def test_send_phone_verification_method_signature(self):
+        expected_signature = ['self', 'user']
+        actual_signature = inspect.getfullargspec(SendPhoneVerificationMixin.send_phone_verification)[0]
+        self.assertEquals(actual_signature, expected_signature)
+
+    @patch('dj_accounts.authentication.verify_phone.VerifyPhone.send', autospec=True)
+    def test_it_calls_send_phone_verification(self, mock_send):
+        RegisterMixin().send_phone_verification(UserFactory())
+        self.assertTrue(mock_send.called)
+
+

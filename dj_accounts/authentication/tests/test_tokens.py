@@ -1,7 +1,7 @@
 from django.test import TestCase
 
 from .factories import UserFactory
-from ..utils import account_activation_token
+from ...utils import account_activation_token
 
 
 class TestAccountActivationToken(TestCase):

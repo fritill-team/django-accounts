@@ -5,8 +5,6 @@ import traceback
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import default_token_generator
-from django.utils.encoding import force_text
-from django.utils.http import urlsafe_base64_decode
 from django.utils.timezone import now
 from django.utils.translation import gettext as _
 from rest_framework import status
@@ -21,7 +19,7 @@ from .mixins import LoginGetFormClassMixin, RegisterMixin, SendEmailVerification
     VerifyEmailMixin
 from .serializers import LogoutSerializer, PasswordResetSerializer, ChangePasswordSerializer
 from .verify_phone import VerifyPhone
-from ..utils import account_activation_token, get_user_tokens, get_errors
+from ..utils import get_user_tokens, get_errors
 
 UserModel = get_user_model()
 
@@ -82,13 +80,33 @@ class ResendEmailVerificationLinkAPIView(SendEmailVerificationMixin, ViewCallbac
         })
 
 
-class VerifyEmailAPIView(VerifyEmailMixin, ViewCallbackMixin,APIView):
+class VerifyEmailAPIView(VerifyEmailMixin, ViewCallbackMixin, APIView):
     def get(self, request, uidb64, token):
         success, user = self.verify(uidb64, token)
         self.get_callback("VERIFY_EMAIL_CALLBACK", user)
         if success:
             return Response({"message": _('Email was verified successfully.')}, status=status.HTTP_200_OK)
         return Response({"message": _('Something went wrong, please try again!')}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class VerifyPhoneAPIView(VerifyEmailMixin, ViewCallbackMixin, APIView):
+    permission_classes = [IsAuthenticated, ]
+
+    def post(self, request, *args, **kwargs):
+        if request.user.phone_verified_at is not None:
+            return Response({
+                'message': _('this account was activated before')
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        form = VerifyPhoneForm(request.POST, user=request.user)
+        if form.is_valid():
+            request.user.phone_verified_at = now()
+            request.user.save()
+            self.get_callback("VERIFY_PHONE_CALLBACK", request.user)
+            return Response({
+                'message': _('Phone verified successfully!')
+            }, status=status.HTTP_200_OK)
+        return Response(form.errors, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
 
 
 class UserLogoutAPIView(APIView):
@@ -147,21 +165,6 @@ class PasswordResetAPIView(APIView):
                   'the address you registered with, and check your spam folder.'))},
                 status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
-
-
-class VerifyPhoneAPIView(APIView):
-    permission_classes = [IsAuthenticated, ]
-
-    def post(self, request, *args, **kwargs):
-        if request.user.phone_verified_at is not None:
-            return Response({'message': 'this account was activated before'}, status=status.HTTP_400_BAD_REQUEST)
-
-        form = VerifyPhoneForm(request.POST, user=request.user)
-        if form.is_valid():
-            request.user.phone_verified_at = now()
-            request.user.save()
-            return Response(status=status.HTTP_200_OK)
-        return Response(form.errors, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
 
 
 class ResendPhoneVerificationAPIView(APIView):

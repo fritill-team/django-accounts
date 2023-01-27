@@ -10,7 +10,7 @@ from django.utils.encoding import force_bytes, force_text
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.timezone import now
 
-from .forms import MultipleLoginForm
+from .forms import MultipleLoginForm, VerifyPhoneForm
 from .verify_phone import VerifyPhone
 from ..utils import get_settings_value, get_class_from_settings, account_activation_token
 
@@ -62,10 +62,7 @@ class ViewCallbackMixin:
             callback(user)
 
 
-class RegisterMixin(ViewCallbackMixin, SendEmailVerificationMixin):
-    def get_form_class(self):
-        return get_class_from_settings('REGISTER_FORM', 'dj_accounts.authentication.forms.UserCreationForm')
-
+class SendPhoneVerificationMixin:
     def send_phone_verification(self, user):
         try:
             VerifyPhone().send(user.phone)
@@ -74,6 +71,11 @@ class RegisterMixin(ViewCallbackMixin, SendEmailVerificationMixin):
             parts.extend(traceback.format_stack(limit=25)[:-2])
             parts.extend(traceback.format_exception(*sys.exc_info())[1:])
             print("".join(parts))
+
+
+class RegisterMixin(ViewCallbackMixin, SendEmailVerificationMixin, SendPhoneVerificationMixin):
+    def get_form_class(self):
+        return get_class_from_settings('REGISTER_FORM', 'dj_accounts.authentication.forms.UserCreationForm')
 
 
 class VerifyEmailMixin:
@@ -92,4 +94,6 @@ class VerifyEmailMixin:
                 user.save()
 
             return success, user
+
+
 
