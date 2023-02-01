@@ -1,5 +1,6 @@
 import importlib
 
+import pyotp
 from django.conf import settings
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.contrib.sites.shortcuts import get_current_site
@@ -63,3 +64,21 @@ def get_user_tokens(user):
 
 def get_errors(errors):
     return {name: error[0] for name, error in errors.items()}
+
+
+def is_unique(key):
+    from django.contrib.auth import get_user_model
+    UserModel = get_user_model()
+    try:
+        UserModel.objects.get(key=key)
+    except UserModel.DoesNotExist:
+        return True
+    return False
+
+
+def generate_key():
+    """ User otp key generator """
+    key = pyotp.random_base32()
+    if is_unique(key):
+        return key
+    generate_key()

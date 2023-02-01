@@ -1,12 +1,14 @@
+import pyotp
 from django import forms
 from django.contrib.sites.models import Site
 from django.db import models
 from django.db.models.signals import post_save
-from django.dispatch import receiver
 from django.utils.translation import gettext_lazy as _
+from phonenumber_field.modelfields import PhoneNumberField
 from translation.models import TranslatableModel
 
 from dj_accounts.authentication.signals import create_site_profile_created_site_signal
+from dj_accounts.utils import get_settings_value
 
 
 class SiteProfile(TranslatableModel):
@@ -61,4 +63,27 @@ class SiteProfile(TranslatableModel):
 post_save.connect(create_site_profile_created_site_signal, sender=Site)
 
 
+class HasPhone(models.Model):
+    class Meta:
+        abstract = True
 
+    phone = PhoneNumberField(unique=True,
+                             error_messages={'unique': _("A user with that phone already exists.")})
+
+    phone_verified_at = models.DateTimeField(blank=True, null=True)
+
+
+class HasOTPVerification(HasPhone):
+    class Meta:
+        abstract = True
+
+    key = models.CharField(max_length=100, unique=True, blank=True)
+
+    def authenticate(self, otp):
+        provided_otp = 0
+        try:
+            provided_otp = int(otp)
+        except:
+            return False
+        t = pyotp.TOTP(self.key, interval=get_settings_value('PHONE_VERIFICATION_CODE_INTERVAL', 60))
+        return t.verify(str(provided_otp))

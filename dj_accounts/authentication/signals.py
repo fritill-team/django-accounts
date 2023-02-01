@@ -19,3 +19,10 @@ def create_site_profile_created_site_signal(sender, instance, created, **kwargs)
         instance.siteprofile = SiteProfile.objects.create(
             site=instance,
             name=instance.name)
+
+
+def create_key_pre_save_signal(sender, instance, **kwargs):
+    """This creates the key for users that don't have keys"""
+    if not instance.key:
+        from dj_accounts.utils import generate_key
+        instance.key = generate_key()
