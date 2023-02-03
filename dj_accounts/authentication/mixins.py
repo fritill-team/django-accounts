@@ -1,16 +1,18 @@
 import sys
 import traceback
+from datetime import timedelta
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.sites.shortcuts import get_current_site
+from django.core.cache import cache
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.utils.encoding import force_bytes, force_text
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.timezone import now
 
-from .forms import MultipleLoginForm, VerifyPhoneForm
+from .forms import MultipleLoginForm
 from .verify_phone import VerifyPhone
 from ..utils import get_settings_value, get_class_from_settings, account_activation_token
 
@@ -65,7 +67,7 @@ class ViewCallbackMixin:
 class SendPhoneVerificationMixin:
     def send_phone_verification(self, user):
         try:
-            VerifyPhone().send(user.phone)
+            VerifyPhone(user, user.phone).send()
         except Exception as e:
             parts = ["Traceback (most recent call last):\n"]
             parts.extend(traceback.format_stack(limit=25)[:-2])
@@ -94,6 +96,3 @@ class VerifyEmailMixin:
                 user.save()
 
             return success, user
-
-
-

@@ -1,1 +1,141 @@
-"use strict";var KTSigninTwoSteps=function(){var e,t;return{init:function(){var n,i,o,u,r,c;e=document.querySelector("#kt_sing_in_two_steps_form"),(t=document.querySelector("#kt_sing_in_two_steps_submit")).addEventListener("click",(function(n){n.preventDefault();var i=!0,o=[].slice.call(e.querySelectorAll('input[maxlength="1"]'));o.map((function(e){""!==e.value&&0!==e.value.length||(i=!1)})),!0===i?(t.setAttribute("data-kt-indicator","on"),t.disabled=!0,setTimeout((function(){t.removeAttribute("data-kt-indicator"),t.disabled=!1,Swal.fire({text:"You have been successfully verified!",icon:"success",buttonsStyling:!1,confirmButtonText:"Ok, got it!",customClass:{confirmButton:"btn btn-primary"}}).then((function(t){if(t.isConfirmed){o.map((function(e){e.value=""}));var n=e.getAttribute("data-kt-redirect-url");n&&(location.href=n)}}))}),1e3)):swal.fire({text:"Please enter valid securtiy code and try again.",icon:"error",buttonsStyling:!1,confirmButtonText:"Ok, got it!",customClass:{confirmButton:"btn fw-bold btn-light-primary"}}).then((function(){KTUtil.scrollTop()}))})),n=e.querySelector("[name=code_1]"),i=e.querySelector("[name=code_2]"),o=e.querySelector("[name=code_3]"),u=e.querySelector("[name=code_4]"),r=e.querySelector("[name=code_5]"),c=e.querySelector("[name=code_6]"),n.focus(),n.addEventListener("keyup",(function(){1===this.value.length&&i.focus()})),i.addEventListener("keyup",(function(){1===this.value.length&&o.focus()})),o.addEventListener("keyup",(function(){1===this.value.length&&u.focus()})),u.addEventListener("keyup",(function(){1===this.value.length&&r.focus()})),r.addEventListener("keyup",(function(){1===this.value.length&&c.focus()})),c.addEventListener("keyup",(function(){1===this.value.length&&c.blur()}))}}}();KTUtil.onDOMContentLoaded((function(){KTSigninTwoSteps.init()}));
+"use strict";
+
+// Class Definition
+var KTSigninTwoSteps = function () {
+  // Elements
+  var inputs,
+    submitButton,
+    codeInput,
+    resendContainer,
+    resendCounterInterval,
+    i18n,
+    DOM
+
+  var initDOM = function () {
+    DOM = {
+      setCounter(seconds) {
+        resendContainer.html($(`<span class="text-muted me-1">${i18n.resendCounter} ${seconds}</span>`))
+      },
+      setResendLink() {
+        resendContainer.fadeOut(150, function () {
+          $(this).empty()
+          $(this).append($(`<span class="text-muted me-1">${i18n.resendText}</span>
+             <a href="${$(this).data('resend-url')}"
+                id="resend-verification-code"
+                class="link-primary fs-5 me-1">${i18n.resendLinkText}</a>`)).fadeIn(150)
+        })
+      }
+    }
+  }
+
+  var initLocalization = function () {
+    i18n = {
+      resendText: gettext("Didn’t get the code ?"),
+      resendLinkText: gettext("Resend"),
+      resendCounter: gettext('You can resend again in..')
+    }
+  }
+
+  var resendCountDown = function () {
+    var endTime = new Date(0)
+    endTime.setSeconds(resendContainer.data('otp-expires-at'))
+
+    if (endTime) {
+      resendCounterInterval = setInterval(function () {
+        var curTime = new Date(),
+          seconds = Math.floor((endTime - curTime) / 1000)
+
+        if (seconds <= 0) {
+          clearInterval(resendCounterInterval)
+          DOM.setResendLink()
+        } else {
+          DOM.setCounter(seconds)
+        }
+      }, 1000);
+    } else
+      resendContainer.fadeOut(50, function () {
+        DOM.setResendLink(this)
+      })
+  }
+
+  var updateSubmitButton = function () {
+    var valuesList = []
+    inputs.each(function (i, item) {
+      if ($(item).val().length > 0)
+        valuesList.push($(item).val())
+    })
+
+    codeInput.val(valuesList.join(''))
+
+    if (valuesList.length === 6)
+      submitButton.removeClass('disabled')
+    else
+      submitButton.addClass('disabled')
+  }
+
+  var handleType = function () {
+    inputs[0].focus()
+
+    inputs.each(function (i, item) {
+      var $item = $(item),
+        order = Number($item.data('otp-input')),
+        next = order + 1,
+        prev = order - 1,
+        nextEl
+
+      $item.on('keyup', function (e) {
+        if ($item.val().length === 1 && (e.keyCode >= 45 && e.keyCode <= 57) || (e.keyCode >= 96 && e.keyCode <= 105)) {
+          nextEl = $(`[data-otp-input=${next}]`)
+          nextEl.focus()
+          nextEl.select()
+        }
+        updateSubmitButton()
+      })
+      $item.on('keydown', function (e) {
+
+        if (e.keyCode === 8) {
+          if ($item.val().length === 0)
+            $(`[data-otp-input=${prev}]`).focus().select()
+        } else if (e.keyCode === 37)
+          $(`[data-otp-input=${prev}]`).focus().select()
+        else if (e.keyCode === 39)
+          $(`[data-otp-input=${next}]`).focus().select()
+      })
+    })
+
+
+  }
+
+  var resendVerificationCode = function () {
+    $(document).on('click', '#resend-verification-code', function (e) {
+      e.preventDefault()
+
+      $.ajax({
+        url: $(this).attr('href'),
+        success(response) {
+          resendContainer.data('otp-expires-at', response['otp_expiry'])
+          resendCountDown()
+        }
+      })
+    })
+  }
+
+  return {
+    init: function () {
+      inputs = $('[data-otp-input]')
+      submitButton = $('#form-submit')
+      codeInput = $('#id_code')
+      resendContainer = $('[data-otp-expires-at]')
+      initLocalization()
+      initDOM()
+      handleType()
+      resendCountDown()
+      resendVerificationCode()
+    }
+  };
+}();
+
+// On document ready
+KTUtil.onDOMContentLoaded(function () {
+  KTSigninTwoSteps.init();
+});

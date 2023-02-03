@@ -2,9 +2,10 @@ from django.conf import settings
 from django.contrib.auth import login, get_user_model
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import LoginView as BaseLoginView
+from django.core.cache import cache
+from django.http import Http404, JsonResponse
 from django.shortcuts import render, redirect
-from django.urls import reverse
-from django.utils.timezone import now
+from django.utils.translation import gettext as _
 from django.views import View
 
 from dj_accounts.utils import get_settings_value
@@ -88,31 +89,72 @@ class EmailVerificationCompleteView(LoginRequiredMixin, View):
         })
 
 
-class VerifyPhoneView(LoginRequiredMixin, ViewCallbackMixin, View):
+class VerifyPhoneView(LoginRequiredMixin, SendPhoneVerificationMixin, ViewCallbackMixin, View):
+    form_class = VerifyPhoneForm
+
+    def __init__(self, *args, **kwargs):
+        super(VerifyPhoneView, self).__init__(*args, **kwargs)
+        self.phone = None
+        self.hashed_phone = None
+        self.form = None
+        self.is_verified = False
+
     def get_template_name(self):
         return 'dj_accounts/authentication/themes/{}/verify_phone.html'.format(
             get_settings_value('AUTHENTICATION_THEME', 'corporate'))
 
+    def get_phone(self):
+        phone_model = get_settings_value("USER_PHONE_MODEL")
+        if phone_model and self.kwargs.get("phone_id", None):
+            phone_object = phone_model.objects.filter(user=self.request.user, id=self.kwargs.get('phone_id'))
+            if not phone_object.exists():
+                raise Http404("Phone does not exists")
+            self.phone = str(phone_object.phone)
+            self.is_verified = phone_object.phone_verified_at is not None
+        else:
+            self.phone = str(self.request.user.phone)
+            self.is_verified = self.request.user.phone_verified_at is not None
+
+        self.hashed_phone = ''.join(['*' for i in self.phone[4:-3]]).join([self.phone[:4], self.phone[-3:]])
+
+    def get_context(self):
+        otp_length = get_settings_value('PHONE_VERIFICATION_CODE_LENGTH', 6)
+        return {
+            "hashed_phone": self.hashed_phone,
+            "otp_length": otp_length,
+            "otp_range": range(otp_length),
+            "form": self.form,
+            "otp_expiry": cache.get("{}-otp-cache-expiry-timestamp".format(self.request.user.id))
+        }
+
+    def get_form(self, *args, **kwargs):
+        self.form = self.form_class(user=self.request.user, *args, **kwargs)
+
     def get(self, request, *args, **kwargs):
-        if request.user.phone_verified_at is not None:
+        self.get_phone()
+
+        if self.is_verified:
             return redirect(settings.LOGIN_REDIRECT_URL)
 
-        return render(request, self.get_template_name(), {
-            "form": VerifyPhoneForm(user=request.user)
-        })
+        self.send_phone_verification(self.request.user)
+
+        self.get_form()
+
+        return render(request, self.get_template_name(), self.get_context())
 
     def post(self, request, *args, **kwargs):
-        if request.user.phone_verified_at is not None:
+        self.get_phone()
+
+        if self.is_verified:
             return redirect(settings.LOGIN_REDIRECT_URL)
 
-        form = VerifyPhoneForm(request.POST, user=request.user)
-        if form.is_valid():
-            request.user.phone_verified_at = now()
-            request.user.save()
+        self.get_form(request.POST)
+
+        if self.form.is_valid():
             self.get_callback("VERIFY_PHONE_CALLBACK", request.user)
             return redirect(settings.LOGIN_REDIRECT_URL)
 
-        return render(request, self.get_template_name(), {"form": form})
+        return render(request, self.get_template_name(), self.get_context())
 
 
 class ResendPhoneVerificationView(LoginRequiredMixin, SendPhoneVerificationMixin, ViewCallbackMixin, View):
@@ -120,4 +162,7 @@ class ResendPhoneVerificationView(LoginRequiredMixin, SendPhoneVerificationMixin
     def get(self, request, *args, **kwargs):
         self.send_phone_verification(request.user)
         self.get_callback("RESEND_PHONE_VERIFICATION_CALLBACK", request.user)
-        return redirect(reverse("verify-phone"))
+        return JsonResponse({
+            "message": _("a new verification code was sent to your phone"),
+            "otp_expiry": cache.get("{}-otp-cache-expiry-timestamp".format(self.request.user.id))
+        })

@@ -15,8 +15,9 @@ urlpatterns = [
     path('verify/email/<str:uidb64>/<str:token>/', VerifyEmailView.as_view(), name='verify-email'),
 
     # phone urls
+    path('verify/phone/resend/', ResendPhoneVerificationView.as_view(), name='resend_phone_activation'),
     path('verify/phone/', VerifyPhoneView.as_view(), name='verify-phone'),
-    path('resend_phone_activation/', ResendPhoneVerificationView.as_view(), name='resend_phone_activation'),
+    path('verify/phone/<int:phone_id>/', VerifyPhoneView.as_view(), name='verify-phone-by-id'),
 
     # password urls
     path('password_change/', auth_views.PasswordChangeView.as_view(), name='password_change'),

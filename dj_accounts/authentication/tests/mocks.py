@@ -1,23 +1,12 @@
-from ..verify_phone import VerifyPhoneServiceAbstract
+from ..verify_phone import BaseVerifyPhoneService
 
 
-class MockVerifyService(VerifyPhoneServiceAbstract):
-    phone = "201002536987"
-    code = "777777"
+class MockVerifyService(BaseVerifyPhoneService):
+    def send(self):
+        print(self.otp.get())
 
-    def send(self, phone):
-        return True
-
-    def check(self, phone, code):
-        return phone == self.phone and code == self.code
-
-
-class TestingVerifyService(VerifyPhoneServiceAbstract):
-    def send(self, phone):
-        return True
-
-    def check(self, phone, code):
-        return True
+    def check(self, code):
+        return self.otp.authenticate(code)
 
 
 def register_callback(user):

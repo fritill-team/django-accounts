@@ -1,8 +1,8 @@
-import pyotp
 from django import forms
 from django.contrib.sites.models import Site
 from django.db import models
 from django.db.models.signals import post_save
+from django.utils.timezone import now
 from django.utils.translation import gettext_lazy as _
 from phonenumber_field.modelfields import PhoneNumberField
 from translation.models import TranslatableModel
@@ -72,6 +72,10 @@ class HasPhone(models.Model):
 
     phone_verified_at = models.DateTimeField(blank=True, null=True)
 
+    def verify_phone(self):
+        self.phone_verified_at = now()
+        self.save()
+
 
 class HasOTPVerification(HasPhone):
     class Meta:
@@ -79,11 +83,5 @@ class HasOTPVerification(HasPhone):
 
     key = models.CharField(max_length=100, unique=True, blank=True)
 
-    def authenticate(self, otp):
-        provided_otp = 0
-        try:
-            provided_otp = int(otp)
-        except:
-            return False
-        t = pyotp.TOTP(self.key, interval=get_settings_value('PHONE_VERIFICATION_CODE_INTERVAL', 60))
-        return t.verify(str(provided_otp))
+    if get_settings_value('OTP_VERIFICATION_TYPE') == 'HOTP':
+        otp_counter = models.IntegerField(default=0)

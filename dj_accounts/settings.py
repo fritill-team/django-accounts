@@ -10,12 +10,12 @@ AUTHENTICATION_THEME = AUTHENTICATION_THEME_CORPORATE
 
 # Multiple Authentication
 MULTIPLE_AUTHENTICATION_ACTIVE = True
-
+# OTP_VERIFICATION_TYPE  = 'HOTP'
 # LOGIN_FORM = 'django.contrib.auth.forms.AuthenticationForm'
 REGISTER_FORM = 'dj_accounts.authentication.forms.RegisterForm'
 EMAIL_CONFIRMATION_SUBJECT = _("Activate Your Account")
 # Phone Service
-PHONE_VERIFY_SERVICE = 'dj_accounts.authentication.tests.mocks.TestingVerifyService'
+PHONE_VERIFY_SERVICE = 'dj_accounts.authentication.tests.mocks.MockVerifyService'
 
 # Social Authentication
 SOCIAL_AUTHENTICATION_PROVIDER_FACEBOOK = 'facebook'

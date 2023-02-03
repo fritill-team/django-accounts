@@ -193,14 +193,13 @@ class VerifyPhoneForm(forms.Form):
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user', None)
         super(VerifyPhoneForm, self).__init__(*args, **kwargs)
-        self.fields['code'].label = "message sent to phone number: {}".format(self.user.phone)
 
     def clean(self):
         code = self.cleaned_data.get('code')
 
-        success = VerifyPhone().check(self.user.phone, code)
+        success = VerifyPhone(self.user, self.user.phone).check(code)
         if not success:
-            raise ValidationError(_("The Provided code is Properly invalid"), code='invalid_code')
+            self.add_error('code', ValidationError(_("The provided code is invalid"), code='invalid_code'))
 
         return self.cleaned_data
 

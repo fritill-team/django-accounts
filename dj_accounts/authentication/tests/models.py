@@ -142,3 +142,10 @@ class NoAuthenticationFieldsUser(models.Model):
 
     def clean(self):
         self.email = self.email.lower()
+
+
+class UserPhone(HasPhone):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    is_primary = models.BooleanField(default=False)
+    under_verification = models.BooleanField(default=False)
+

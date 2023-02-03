@@ -11,7 +11,13 @@
 
 {% block layout %}{% endblock %}
 
+<script src="{% url 'javascript-catalog' %}"></script>
+<script>
+  window.gettext = gettext
+</script>
+
 {% include 'dj_accounts/authentication/partials/_scripts.html' %}
+
 {% block base_scripts %}{% endblock %}
 </body>
 </html>

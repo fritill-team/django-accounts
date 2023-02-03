@@ -57,6 +57,10 @@
 
 {% include "dj_accounts/layout/partials/_scrolltop.html" %}
 
+<script src="{% url 'javascript-catalog' %}"></script>
+<script>
+  window.gettext = gettext
+</script>
 <script src="{% static "dj_accounts/plugins/global/plugins.bundle.js" %}"></script>
 <script src="{% static "dj_accounts/js/scripts.bundle.js" %}"></script>
 {% block scripts %}{% endblock %}

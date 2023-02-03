@@ -1,135 +1,134 @@
 "use strict";
 
-// Class Definition
 var KTSigninTwoSteps = function () {
-  // Elements
-  var form;
-  var submitButton;
+  var inputs,
+    submitButton,
+    codeInput,
+    resendContainer,
+    resendCounterInterval,
+    i18n,
+    DOM
 
-  // Handle form
-  var handleForm = function (e) {
-    // Handle form submit
-    submitButton.addEventListener('click', function (e) {
-      e.preventDefault();
-
-      var validated = true;
-
-      var inputs = [].slice.call(form.querySelectorAll('input[maxlength="1"]'));
-      inputs.map(function (input) {
-        if (input.value === '' || input.value.length === 0) {
-          validated = false;
-        }
-      });
-
-      if (validated === true) {
-        // Show loading indication
-        submitButton.setAttribute('data-kt-indicator', 'on');
-
-        // Disable button to avoid multiple click
-        submitButton.disabled = true;
-
-        // Simulate ajax request
-        setTimeout(function () {
-          // Hide loading indication
-          submitButton.removeAttribute('data-kt-indicator');
-
-          // Enable button
-          submitButton.disabled = false;
-
-          // Show message popup. For more info check the plugin's official documentation: https://sweetalert2.github.io/
-          Swal.fire({
-            text: "You have been successfully verified!",
-            icon: "success",
-            buttonsStyling: false,
-            confirmButtonText: "Ok, got it!",
-            customClass: {
-              confirmButton: "btn btn-primary"
-            }
-          }).then(function (result) {
-            if (result.isConfirmed) {
-              inputs.map(function (input) {
-                input.value = '';
-              });
-
-              var redirectUrl = form.getAttribute('data-kt-redirect-url');
-              if (redirectUrl) {
-                location.href = redirectUrl;
-              }
-            }
-          });
-        }, 1000);
-      } else {
-        swal.fire({
-          text: "Please enter valid security code and try again.",
-          icon: "error",
-          buttonsStyling: false,
-          confirmButtonText: "Ok, got it!",
-          customClass: {
-            confirmButton: "btn fw-bold btn-light-primary"
-          }
-        }).then(function () {
-          KTUtil.scrollTop();
-        });
+  var initDOM = function () {
+    DOM = {
+      setCounter(seconds) {
+        resendContainer.html($(`<span class="text-muted me-1">${i18n.resendCounter} ${seconds}</span>`))
+      },
+      setResendLink() {
+        resendContainer.fadeOut(150, function () {
+          $(this).empty()
+          $(this).append($(`<span class="text-muted me-1">${i18n.resendText}</span>
+             <a href="${$(this).data('resend-url')}"
+                id="resend-verification-code"
+                class="link-primary fs-5 me-1">${i18n.resendLinkText}</a>`)).fadeIn(150)
+        })
       }
-    });
+    }
+  }
+
+  var initLocalization = function () {
+    i18n = {
+      resendText: gettext("Didn’t get the code ?"),
+      resendLinkText: gettext("Resend"),
+      resendCounter: gettext('You can resend again in..')
+    }
+  }
+
+  var resendCountDown = function () {
+    var endTime = new Date(0)
+    endTime.setSeconds(resendContainer.data('otp-expires-at'))
+
+    if (endTime) {
+      resendCounterInterval = setInterval(function () {
+        var curTime = new Date(),
+          seconds = Math.floor((endTime - curTime) / 1000)
+
+        if (seconds <= 0) {
+          clearInterval(resendCounterInterval)
+          DOM.setResendLink()
+        } else {
+          DOM.setCounter(seconds)
+        }
+      }, 1000);
+    } else
+      resendContainer.fadeOut(50, function () {
+        DOM.setResendLink(this)
+      })
+  }
+
+  var updateSubmitButton = function () {
+    var valuesList = []
+    inputs.each(function (i, item) {
+      if ($(item).val().length > 0)
+        valuesList.push($(item).val())
+    })
+
+    codeInput.val(valuesList.join(''))
+
+    if (valuesList.length === 6)
+      submitButton.removeClass('disabled')
+    else
+      submitButton.addClass('disabled')
   }
 
   var handleType = function () {
-    var input1 = form.querySelector("[name=code_1]");
-    var input2 = form.querySelector("[name=code_2]");
-    var input3 = form.querySelector("[name=code_3]");
-    var input4 = form.querySelector("[name=code_4]");
-    var input5 = form.querySelector("[name=code_5]");
-    var input6 = form.querySelector("[name=code_6]");
+    inputs[0].focus()
 
-    input1.focus();
+    inputs.each(function (i, item) {
+      var $item = $(item),
+        order = Number($item.data('otp-input')),
+        next = order + 1,
+        prev = order - 1,
+        nextEl
 
-    input1.addEventListener("keyup", function () {
-      if (this.value.length === 1) {
-        input2.focus();
-      }
-    });
+      $item.on('keyup', function (e) {
+        if ($item.val().length === 1 && (e.keyCode >= 45 && e.keyCode <= 57) || (e.keyCode >= 96 && e.keyCode <= 105)) {
+          nextEl = $(`[data-otp-input=${next}]`)
+          nextEl.focus()
+          nextEl.select()
+        }
+        updateSubmitButton()
+      })
+      $item.on('keydown', function (e) {
 
-    input2.addEventListener("keyup", function () {
-      if (this.value.length === 1) {
-        input3.focus();
-      }
-    });
+        if (e.keyCode === 8) {
+          if ($item.val().length === 0)
+            $(`[data-otp-input=${prev}]`).focus().select()
+        } else if (e.keyCode === 37)
+          $(`[data-otp-input=${prev}]`).focus().select()
+        else if (e.keyCode === 39)
+          $(`[data-otp-input=${next}]`).focus().select()
+      })
+    })
 
-    input3.addEventListener("keyup", function () {
-      if (this.value.length === 1) {
-        input4.focus();
-      }
-    });
 
-    input4.addEventListener("keyup", function () {
-      if (this.value.length === 1) {
-        input5.focus();
-      }
-    });
-
-    input5.addEventListener("keyup", function () {
-      if (this.value.length === 1) {
-        input6.focus();
-      }
-    });
-
-    input6.addEventListener("keyup", function () {
-      if (this.value.length === 1) {
-        input6.blur();
-      }
-    });
   }
 
-  // Public functions
-  return {
-    // Initialization
-    init: function () {
-      form = document.querySelector('#kt_sing_in_two_steps_form');
-      submitButton = document.querySelector('#kt_sing_in_two_steps_submit');
+  var resendVerificationCode = function () {
+    $(document).on('click', '#resend-verification-code', function (e) {
+      e.preventDefault()
 
-      handleForm();
-      handleType();
+      $.ajax({
+        url: $(this).attr('href'),
+        success(response) {
+          resendContainer.data('otp-expires-at', response['otp_expiry'])
+          resendCountDown()
+        }
+      })
+    })
+  }
+
+  return {
+    init: function () {
+      inputs = $('[data-otp-input]')
+      submitButton = $('#form-submit')
+      codeInput = $('#id_code')
+      resendContainer = $('[data-otp-expires-at]')
+      initLocalization()
+      initDOM()
+      handleType()
+      resendCountDown()
+      resendVerificationCode()
     }
   };
 }();
