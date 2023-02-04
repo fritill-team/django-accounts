@@ -1,9 +1,11 @@
-from abc import abstractmethod, ABC
+from abc import abstractmethod
 from datetime import timedelta
 
 import pyotp
 from django.core.cache import cache
+from django.core.exceptions import ObjectDoesNotExist
 from django.utils.timezone import now
+from django.utils.translation import gettext as _
 
 from dj_accounts.utils import get_settings_value, get_class_from_settings
 
@@ -91,11 +93,11 @@ class BaseVerifyPhoneService:
 
     @abstractmethod
     def send(self):
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def check(self, code):
-        pass
+        raise NotImplementedError
 
 
 class VerifyPhone:
@@ -103,12 +105,15 @@ class VerifyPhone:
         self.user = user
         self.phone = phone
         self.otp_cache_expiry_timestamp = "{}-otp-cache-expiry-timestamp".format(self.user.id)
-        self.phone_model = get_settings_value('USER_PHONE_MODEL')
+        self.phone_model = get_class_from_settings('USER_PHONE_MODEL')
         self.phone_object = user
         if self.phone_model:
             self.phone_object = self.phone_model.objects.filter(phone=phone, user=user)
+
             if not self.phone_object.exists():
-                raise Exception
+                raise ObjectDoesNotExist(_("Phone Not Found!"))
+
+            self.phone_object = self.phone_object.first()
 
         self.service = get_class_from_settings(
             'PHONE_VERIFY_SERVICE', 'dj_accounts.authentication.verify_phone.BaseVerifyPhoneService')(user, phone)
