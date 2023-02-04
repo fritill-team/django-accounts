@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 from django import forms
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import UserCreationForm
@@ -7,9 +9,11 @@ from django.test import override_settings
 from django.utils.timezone import now
 from django.utils.translation import gettext_lazy as _
 
+import dj_accounts.authentication.verify_phone
 from .factories import UserFactory
 from ..forms import MultipleLoginForm, RegisterForm, VerifyPhoneForm
 from ..templatetags.auth import get_authentication_field_placeholder
+from ..verify_phone import TOTP
 
 UserModel = get_user_model()
 
@@ -275,9 +279,9 @@ class MultipleLoginFormValidationTestCase(TestCase):
         self.assertEquals(0, self.request.session['_session_expiry'])
 
 
-class VerifyPhoneFormTestCase(TestCase):
+class VerifyPhoneFormStructureTestCase(TestCase):
     def setUp(self):
-        self.user = UserFactory(phone="201002536987")
+        self.user = UserFactory(phone="+201002536987")
         self.form = VerifyPhoneForm(user=self.user)
 
     def test_it_extends_django_Form(self):
@@ -286,9 +290,6 @@ class VerifyPhoneFormTestCase(TestCase):
     def test_it_has_code_field(self):
         self.assertIn('code', self.form.fields)
 
-    def test_code_label_is_correct(self):
-        self.assertEquals(self.form.fields['code'].label, _("message sent to phone number: {}".format(self.user.phone)))
-
     def test_code_min_length_is_six_characters(self):
         self.assertEquals(self.form.fields['code'].min_length, 6)
 
@@ -296,20 +297,34 @@ class VerifyPhoneFormTestCase(TestCase):
         self.assertEquals(self.form.fields['code'].max_length, 6)
 
 
-class VerifyPhoneFormValidationTestCase(TestCase):
+class VerifyPhoneFormInitTestCase(TestCase):
     def setUp(self):
-        self.user = UserFactory(phone="201002536987")
-        self.data = {"code": "777777"}
+        self.user = UserFactory(phone="+201002536987")
+        self.form = VerifyPhoneForm(user=self.user)
 
+    def test_it_sets_user_to_user_parameter(self):
+        self.assertEquals(self.form.user, self.user)
+
+
+class VerifyPhoneFormValidationTestCase(TestCase):
     @override_settings(PHONE_VERIFY_SERVICE="dj_accounts.authentication.tests.mocks.MockVerifyService")
+    def setUp(self):
+        self.user = UserFactory(phone="+201002536987")
+
+    @patch('dj_accounts.authentication.verify_phone.VerifyPhone.check', autospec=True)
+    def test_it_calls_verify_phone_check(self, mocked_method):
+        form = VerifyPhoneForm(user=self.user, data={})
+        form.is_valid()
+        self.assertTrue(mocked_method.called)
+
     def test_it_fails_if_phone_verification_is_not_successful(self):
-        self.data.update({"code": "888888"})
-        form = VerifyPhoneForm(user=self.user, data=self.data)
+        form = VerifyPhoneForm(user=self.user, data={"code": "888888"})
         self.assertFalse(form.is_valid())
-        self.assertEquals('invalid_code', form.errors.as_data()['__all__'][0].code)
-        self.assertEquals(_("The Provided code is Properly invalid"), form.errors.as_data()['__all__'][0].message)
+        self.assertEquals('invalid_code', form.errors.as_data()['code'][0].code)
+        self.assertEquals(_("The provided code is invalid"), form.errors.as_data()['code'][0].message)
 
-    @override_settings(PHONE_VERIFY_SERVICE="dj_accounts.authentication.tests.mocks.MockVerifyService")
     def test_it_passes_if_phone_verification_is_successful(self):
-        form = VerifyPhoneForm(user=self.user, data=self.data)
+        form = VerifyPhoneForm(user=self.user, data={
+            "code":TOTP(self.user).get()
+        })
         self.assertTrue(form.is_valid())

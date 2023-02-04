@@ -191,7 +191,7 @@ class VerifyPhoneForm(forms.Form):
     code = forms.CharField(max_length=6, min_length=6)
 
     def __init__(self, *args, **kwargs):
-        self.user = kwargs.pop('user', None)
+        self.user = kwargs.pop('user')
         super(VerifyPhoneForm, self).__init__(*args, **kwargs)
 
     def clean(self):
