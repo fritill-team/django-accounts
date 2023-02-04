@@ -4,13 +4,17 @@ from unittest.mock import patch
 from django.conf import settings
 from django.contrib.auth.forms import AuthenticationForm
 from django.core import mail
+from django.core.exceptions import ObjectDoesNotExist
 from django.test import TestCase, override_settings, RequestFactory
+from django.urls import reverse
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
+from django.utils.timezone import now
 
+from .models import UserPhone
 from ..forms import MultipleLoginForm, RegisterForm, UserCreationForm, VerifyPhoneForm
 from ..mixins import LoginGetFormClassMixin, RegisterMixin, SendEmailVerificationMixin, ViewCallbackMixin, \
-    VerifyEmailMixin, SendPhoneVerificationMixin
+    VerifyEmailMixin, SendPhoneVerificationMixin, VerifyPhoneMixin
 from ..tests.factories import UserFactory
 from ..tests.forms import TestLoginForm
 from ...utils import account_activation_token
@@ -167,4 +171,178 @@ class SendPhoneVerificationMixinTestCase(TestCase):
         RegisterMixin().send_phone_verification(UserFactory())
         self.assertTrue(mock_send.called)
 
+
+class VerifyPhoneMixinStructureTestCase(TestCase):
+    def test_it_has_form_class_property(self):
+        self.assertTrue(hasattr(VerifyPhoneMixin, 'form_class'))
+
+    def test_form_class_is_VerifyPhoneForm(self):
+        self.assertEquals(VerifyPhoneMixin.form_class, VerifyPhoneForm)
+
+    def test_it_has_get_phone_method(self):
+        self.assertTrue(hasattr(VerifyPhoneMixin, 'get_phone'))
+
+    def test_it_get_phone_method_is_callable(self):
+        self.assertTrue(callable(VerifyPhoneMixin.get_phone))
+
+    def test_get_phone_method_signature(self):
+        expected_signature = ['self']
+        actual_signature = inspect.getfullargspec(VerifyPhoneMixin.get_phone)[0]
+        self.assertEquals(actual_signature, expected_signature)
+
+    def test_it_has_get_form_method(self):
+        self.assertTrue(hasattr(VerifyPhoneMixin, 'get_form'))
+
+    def test_it_get_form_method_is_callable(self):
+        self.assertTrue(callable(VerifyPhoneMixin.get_form))
+
+    def test_get_form_method_signature(self):
+        expected_signature = ['self']
+        actual_signature = inspect.getfullargspec(VerifyPhoneMixin.get_form)[0]
+        self.assertEquals(actual_signature, expected_signature)
+
+    def test_it_has_get_context_method(self):
+        self.assertTrue(hasattr(VerifyPhoneMixin, 'get_context'))
+
+    def test_it_get_context_method_is_callable(self):
+        self.assertTrue(callable(VerifyPhoneMixin.get_context))
+
+    def test_get_context_method_signature(self):
+        expected_signature = ['self']
+        actual_signature = inspect.getfullargspec(VerifyPhoneMixin.get_context)[0]
+        self.assertEquals(actual_signature, expected_signature)
+
+
+class VerifyPhoneMixinInitTestCase(TestCase):
+    def setUp(self):
+        self.mixin = VerifyPhoneMixin()
+
+    def test_it_sets_phone_to_none(self):
+        self.assertIsNone(self.mixin.phone)
+
+    def test_it_sets_hashed_phone_to_none(self):
+        self.assertIsNone(self.mixin.hashed_phone)
+
+    def test_it_sets_form_to_none(self):
+        self.assertIsNone(self.mixin.form)
+
+    def test_it_sets_is_verified_to_false(self):
+        self.assertFalse(self.mixin.is_verified)
+
+
+class VerifyPhoneMixinGetPhoneTestCase(TestCase):
+    def setUp(self):
+        self.user = UserFactory()
+        self.mixin = VerifyPhoneMixin()
+        self.request = RequestFactory().get(reverse('verify-phone'))
+        self.request.user = self.user
+        self.mixin.request = self.request
+
+    def test_it_sets_phone_to_request_user_phone(self):
+        self.mixin.get_phone()
+        self.assertEquals(self.mixin.phone, self.user.phone)
+
+    def test_it_sets_hashed_phone_to_request_user_hashed_phone(self):
+        self.mixin.get_phone()
+        phone = str(self.user.phone)
+        self.assertEquals(self.mixin.hashed_phone, ''.join(['*' for i in phone[4:-3]]).join([phone[:4], phone[-3:]]))
+
+    def test_it_sets_is_verified_to_boolean_value_of_user_phone_verified_at(self):
+        self.mixin.get_phone()
+        self.assertFalse(self.mixin.is_verified)
+        self.user.phone_verified_at = now()
+        self.mixin.get_phone()
+        self.assertTrue(self.mixin.is_verified)
+
+
+class VerifyPhoneMixinGetPhoneWithMultiplePhonesTestCase(TestCase):
+    """
+    tests VerifyPhoneMixin.get_phone when USER_PHONE_MODEL is provided
+    """
+
+    def setUp(self):
+        self.user = UserFactory()
+        self.user_phone = UserPhone.objects.create(
+            user=self.user, phone=self.user.phone
+        )
+        self.mixin = VerifyPhoneMixin()
+        self.request = RequestFactory().get(reverse('verify-phone'))
+        self.request.user = self.user
+        self.mixin.request = self.request
+        self.mixin.kwargs = {"phone_id": self.user_phone.pk}
+
+    @override_settings(USER_PHONE_MODEL='dj_accounts.authentication.tests.models.UserPhone')
+    def test_it_raises_ObjectDoesNotExist_if_phone_does_not_exist(self):
+        with self.assertRaises(ObjectDoesNotExist) as e:
+            self.mixin.kwargs = {"phone_id": 2}
+            self.mixin.get_phone()
+            self.assertEquals(e.exception, "Phone Not Found!")
+
+    @override_settings(USER_PHONE_MODEL='dj_accounts.authentication.tests.models.UserPhone')
+    def test_it_sets_phone_to_request_user_phone_provided_in_kwargs(self):
+        self.mixin.get_phone()
+        self.assertEquals(self.mixin.phone, self.user_phone.phone)
+
+    @override_settings(USER_PHONE_MODEL='dj_accounts.authentication.tests.models.UserPhone')
+    def test_it_sets_is_verified_to_boolean_value_of_user_phone_verified_at(self):
+        self.mixin.get_phone()
+        self.assertFalse(self.mixin.is_verified)
+        self.user_phone.phone_verified_at = now()
+        self.user_phone.save()
+
+        self.mixin.get_phone()
+        self.assertTrue(self.mixin.is_verified)
+
+    @override_settings(USER_PHONE_MODEL='dj_accounts.authentication.tests.models.UserPhone')
+    def test_it_sets_hashed_phone_to_request_user_hashed_phone(self):
+        self.mixin.get_phone()
+        phone = str(self.user_phone.phone)
+        self.assertEquals(self.mixin.hashed_phone, ''.join(['*' for i in phone[4:-3]]).join([phone[:4], phone[-3:]]))
+
+
+class VerifyPhoneMixinGetFormTestCase(TestCase):
+    def test_it_sets_form_property_with_instance_of_from_class_property(self):
+        mixin = VerifyPhoneMixin()
+        mixin.request = RequestFactory().get(reverse('verify-phone'))
+        mixin.request.user = UserFactory()
+        mixin.get_form()
+        self.assertIsInstance(mixin.form, mixin.form_class)
+
+
+class VerifyPhoneMixinGetContextTestCase(TestCase):
+    def setUp(self):
+        self.user = UserFactory()
+        self.mixin = VerifyPhoneMixin()
+        self.mixin.request = RequestFactory().get(reverse('verify-phone'))
+        self.mixin.request.user = self.user
+        self.mixin.get_phone()
+        self.mixin.get_form()
+
+    def test_it_returns_dict(self):
+        context = self.mixin.get_context()
+        self.assertIsInstance(context, dict)
+
+    def test_it_returns_hashed_phone(self):
+        context = self.mixin.get_context()
+        self.assertIn('hashed_phone', context)
+        self.assertEquals(context['hashed_phone'], self.mixin.hashed_phone)
+
+    def test_it_returns_otp_length(self):
+        context = self.mixin.get_context()
+        self.assertIn('otp_length', context)
+        self.assertEquals(context['otp_length'], 6)
+
+    def test_it_returns_otp_range(self):
+        context = self.mixin.get_context()
+        self.assertIn('otp_range', context)
+        self.assertEquals(context['otp_range'], range(6))
+
+    def test_it_returns_form(self):
+        context = self.mixin.get_context()
+        self.assertIn('form', context)
+        self.assertEquals(context['form'], self.mixin.form)
+
+    def test_it_returns_otp_expiry(self):
+        context = self.mixin.get_context()
+        self.assertIn('otp_expiry', context)
 

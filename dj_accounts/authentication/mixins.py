@@ -1,18 +1,18 @@
 import sys
 import traceback
-from datetime import timedelta
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.sites.shortcuts import get_current_site
 from django.core.cache import cache
+from django.core.exceptions import ObjectDoesNotExist
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.utils.encoding import force_bytes, force_text
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.timezone import now
 
-from .forms import MultipleLoginForm
+from .forms import MultipleLoginForm, VerifyPhoneForm
 from .verify_phone import VerifyPhone
 from ..utils import get_settings_value, get_class_from_settings, account_activation_token
 
@@ -96,3 +96,40 @@ class VerifyEmailMixin:
                 user.save()
 
             return success, user
+
+
+class VerifyPhoneMixin:
+    form_class = VerifyPhoneForm
+
+    def __init__(self, *args, **kwargs):
+        super(VerifyPhoneMixin, self).__init__(*args, **kwargs)
+        self.phone = None
+        self.hashed_phone = None
+        self.form = None
+        self.is_verified = False
+
+    def get_phone(self):
+        phone_model = get_class_from_settings("USER_PHONE_MODEL")
+        phone_object = self.request.user
+        if phone_model and self.kwargs.get("phone_id", None):
+            phone_object = phone_model.objects.filter(user=self.request.user, id=self.kwargs.get('phone_id'))
+            if not phone_object.exists():
+                raise ObjectDoesNotExist("Phone Not Found!")
+            phone_object = phone_object.first()
+
+        self.phone = str(phone_object.phone)
+        self.is_verified = phone_object.phone_verified_at is not None
+        self.hashed_phone = ''.join(['*' for i in self.phone[4:-3]]).join([self.phone[:4], self.phone[-3:]])
+
+    def get_form(self, *args, **kwargs):
+        self.form = self.form_class(user=self.request.user, *args, **kwargs)
+
+    def get_context(self):
+        otp_length = get_settings_value('PHONE_VERIFICATION_CODE_LENGTH', 6)
+        return {
+            "hashed_phone": self.hashed_phone,
+            "otp_length": otp_length,
+            "otp_range": range(otp_length),
+            "form": self.form,
+            "otp_expiry": cache.get("{}-otp-cache-expiry-timestamp".format(self.request.user.id))
+        }
