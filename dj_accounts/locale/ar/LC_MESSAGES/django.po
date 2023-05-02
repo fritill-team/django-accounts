@@ -1,0 +1,345 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-05-02 22:50+0300\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 "
+"&& n%100<=10 ? 3 : n%100>=11 && n%100<=99 ? 4 : 5;\n"
+
+#: forms.py:21 serializers.py:51 tests/test_forms.py:64 tests/test_forms.py:79
+#: tests/test_serializers.py:72
+msgid "Required, please provide your username"
+msgstr "مطلوب، يرجى ادخال اسم المستخدم الخاص بك"
+
+#: forms.py:25 serializers.py:55 tests/test_serializers.py:31
+msgid "Required, please provide your email"
+msgstr "مطلوب، يرجى ادخال البريد الالكترونى الخاص بك"
+
+#: forms.py:29 serializers.py:59 tests/test_forms.py:94
+#: tests/test_serializers.py:87
+msgid "Required, please provide your phone number"
+msgstr "مطلوب، يرجى ادخال رقم الهاتف الخاص بك"
+
+#: forms.py:50 forms.py:170 tests/test_forms.py:161
+msgid "Password"
+msgstr "كلمة المرور"
+
+#: forms.py:57 templates/dj_accounts/partials/login_with_email.html:23
+#: templates/dj_accounts/partials/login_with_phone.html:23
+#: tests/test_forms.py:177
+msgid "Remember Me"
+msgstr "تذكرني"
+
+#: forms.py:63 tests/test_forms.py:218 tests/test_forms.py:229
+#: tests/test_forms.py:240
+msgid ""
+"Please enter a correct credentials. Note that fields may be case-sensitive."
+msgstr "يرجي ادخال بيانات صحيحية"
+
+#: forms.py:66
+msgid "This account is inactive."
+msgstr "هذا الحساب محظور"
+
+#: forms.py:67 tests/test_forms.py:207
+msgid "Please enter a correct credentials"
+msgstr "يرجى ادخال بيانات صحيحية"
+
+#: forms.py:131 tests/test_forms.py:309
+msgid "The Provided code is Properly invalid"
+msgstr "الرقم المدخل غير صحيح"
+
+#: forms.py:155
+msgid "Please Enter the first name"
+msgstr "يرجى ادخال الاسم الاول"
+
+#: forms.py:168
+msgid "New Email"
+msgstr "البريد الالكترونى الجديد"
+
+#: forms.py:177 forms.py:228
+msgid ""
+"Please enter a correct phone and password. Note that both fields may be case-"
+"sensitive."
+msgstr "يرجى ادخال رقم هاتف و كلمة مرور صحيحين"
+
+#: forms.py:191
+msgid "Email already exists"
+msgstr "البريد الالكترونى مسجل مسبقا"
+
+#: forms.py:194
+msgid "Please Enter the new Email"
+msgstr "يرجى ادخل البريد الالكتروني الجديد"
+
+#: forms.py:206
+msgid "Please Enter Valid Password"
+msgstr "يرجى ادخل كلمة مرور صحيحة"
+
+#: forms.py:221 tests/test_forms.py:499
+msgid "Your Password"
+msgstr "كلمة المرور الخاصة بك"
+
+#: serializers.py:45
+msgid "Invalid token."
+msgstr "رمز غير صحيح"
+
+#: serializers.py:68 tests/test_serializers.py:57
+msgid "Enter the same password as before, for verification."
+msgstr "تأكيد كلمة المرور غير مطابق لكلمة المرور"
+
+#: templates/dj_accounts/auth_base.html:7
+#: templates/dj_accounts/profile_base.html:7
+msgid "Accounts"
+msgstr "الحسابات"
+
+#: templates/dj_accounts/confirm_email_template.html:5
+#, python-format
+msgid ""
+"You're receiving this email because you registered new account at\n"
+"%(site_name)s."
+msgstr ""
+"وصلك هذا البريد الالكتروني لتسجيلك حساب جديد فى\n"
+"%(site_name)s."
+
+#: templates/dj_accounts/confirm_email_template.html:8
+msgid " Please click on the link to confirm your registration:"
+msgstr "يرجى النقر على الرابط التالى لتأكيد حسابك:"
+
+#: templates/dj_accounts/confirm_email_template.html:12
+#: templates/dj_accounts/password_reset_email.html:11
+msgid "Your username, in case you’ve forgotten:"
+msgstr "فى حالة نسيانك، اسم المستخدم الخاص بك هو:"
+
+#: templates/dj_accounts/confirm_email_template.html:14
+#: templates/dj_accounts/password_reset_email.html:13
+msgid "Thanks for using our site!"
+msgstr "شكرا لاستخدامك موقعنا!"
+
+#: templates/dj_accounts/confirm_email_template.html:16
+#: templates/dj_accounts/password_reset_email.html:15
+#, python-format
+msgid "The %(site_name)s team"
+msgstr "فريق %(site_name)s"
+
+#: templates/dj_accounts/email_verification_complete.html:3
+msgid "Your Account is verified successfully"
+msgstr "تم تأكيد حسابك بنجاح"
+
+#: templates/dj_accounts/email_verification_complete.html:5
+msgid "Something went wrong, please try to contact customer service"
+msgstr "حدث خطأ، يرجى التواصل مع خدمة العملاء"
+
+#: templates/dj_accounts/login.html:11
+#: templates/dj_accounts/partials/login_with_email.html:28
+#: templates/dj_accounts/partials/login_with_phone.html:28
+msgid "Login"
+msgstr "تسجيل الدخول"
+
+#: templates/dj_accounts/login.html:17
+msgid "Log in to start your session"
+msgstr "سجل الدخول لبدء التصفح"
+
+#: templates/dj_accounts/login.html:24
+msgid "I forgot my password"
+msgstr "نسيت كلمة المرور"
+
+#: templates/dj_accounts/login.html:27
+msgid "Register a new membership"
+msgstr "تسجيل حساب جديد"
+
+#: templates/dj_accounts/partials/fields/terms&conditions.html:5
+msgid "I agree to the "
+msgstr "اقبل "
+
+#: templates/dj_accounts/partials/fields/terms&conditions.html:5
+msgid "trems"
+msgstr "الشروط"
+
+#: templates/dj_accounts/partials/login-tabs.html:6
+msgid "Login With Email"
+msgstr ""
+
+#: templates/dj_accounts/partials/login-tabs.html:12
+msgid "Login With Phone"
+msgstr "الدخول باستخدام الهاتف"
+
+#: templates/dj_accounts/partials/login_with_email.html:5
+#: templates/dj_accounts/partials/login_with_phone.html:5
+msgid "Alert!"
+msgstr "تنبية"
+
+#: templates/dj_accounts/partials/social_login.html:4
+msgid "OR"
+msgstr "او"
+
+#: templates/dj_accounts/partials/social_login.html:6
+msgid "Sign in using Facebook"
+msgstr "تسجيل الدخول بواسطة فيسبوك"
+
+#: templates/dj_accounts/partials/social_login.html:9
+msgid "Sign in using Google+"
+msgstr "تسجيل الدخول بواسطة Google+"
+
+#: templates/dj_accounts/password_reset_complete.html:5
+#: templates/dj_accounts/password_reset_confirm.html:12
+#: templates/dj_accounts/password_reset_done.html:5
+#: templates/dj_accounts/phone_verification_complete.html:5
+msgid "Password Reset"
+msgstr "اعادة ضبط كلمة المرور"
+
+#: templates/dj_accounts/password_reset_complete.html:12
+#: templates/dj_accounts/phone_verification_complete.html:12
+msgid "Your password has been set. You may go ahead and log in now."
+msgstr "تم ضبط كلمة المرور الخاص بك، يمكنك الآن تسجيل الدخول"
+
+#: templates/dj_accounts/password_reset_complete.html:14
+#: templates/dj_accounts/phone_verification_complete.html:14
+msgid "Log in"
+msgstr "تسجيل الدخول"
+
+#: templates/dj_accounts/password_reset_confirm.html:5
+msgid "Password reset confirmation"
+msgstr "تأكيد اعادة ضبط كلمة المرور"
+
+#: templates/dj_accounts/password_reset_confirm.html:16
+msgid ""
+"Please enter your new password twice so we can verify you typed it in "
+"correctly."
+msgstr "يرجى ادخال كلمة المرور وتأكيدها بشكل صحيح"
+
+#: templates/dj_accounts/password_reset_confirm.html:21
+msgid "Change my password"
+msgstr "تغيير كلمة المرور"
+
+#: templates/dj_accounts/password_reset_email.html:4
+#, python-format
+msgid ""
+"You're receiving this email because you requested a password reset for your "
+"user account at\n"
+"%(site_name)s."
+msgstr ""
+"لقد وصلتك هذه الرسالة لانك طلبت تغيير كلمة المرور للحساب الخاص بك على "
+"%(site_name)s."
+
+#: templates/dj_accounts/password_reset_email.html:7
+msgid "Please go to the following page and choose a new password:"
+msgstr "يرجى الدخول على الرابط التالي لاعادة ضبط كلمة المرور"
+
+#: templates/dj_accounts/password_reset_form.html:13
+msgid "Reset my password"
+msgstr "تغيير كلمة المرور الخاصة بي"
+
+#: templates/dj_accounts/password_reset_subject.txt:2
+#, python-format
+msgid "Password reset on %(site_name)s"
+msgstr "تغيير كلمة المرور ل %(site_name)s."
+
+#: templates/dj_accounts/update_email_form.html:4 tests/test_views.py:607
+#: views.py:58
+msgid "Update Email"
+msgstr "تحديث البريد الالكترونى"
+
+#: templates/dj_accounts/update_email_form.html:11
+#: templates/dj_accounts/update_phone_number_form.html:12
+#: templates/dj_accounts/update_user_data_form.html:12
+#: templates/dj_accounts/update_user_password_form.html:13
+msgid "Submit"
+msgstr "ارسال"
+
+#: templates/dj_accounts/update_phone_number_form.html:5
+msgid "Update Phone number"
+msgstr "تحديث رقم الهاتف"
+
+#: templates/dj_accounts/update_user_data_form.html:5
+msgid "Update User Data"
+msgstr "تحديث بيانات الملف الشخصى"
+
+#: tests/models.py:16
+msgid "The given email must be set"
+msgstr "يجب ادخال البريد الالكترونى"
+
+#: tests/models.py:53
+msgid "email address"
+msgstr "البريد الالكتروني"
+
+#: tests/models.py:58
+msgid "username"
+msgstr "اسم المستخدم"
+
+#: tests/models.py:59
+msgid "Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only."
+msgstr "مطلوب. 150 حرفًا أو أقل. أحرف وأرقام و @ /. / + / - / _ فقط."
+
+#: tests/models.py:66
+msgid "A user with that phone already exists."
+msgstr "يوجد مستخدم بنفس رقم الهاتف"
+
+#: tests/test_forms.py:289
+msgid "message sent to phone number: {}"
+msgstr "تم ارسال رسالة الى رقم: {}"
+
+#: tests/test_view_api.py:318 views_api.py:179
+msgid "Code was resent successfully."
+msgstr "تم اعادة ارسال رمز التحقق"
+
+#: tests/test_view_api.py:354 views_api.py:208
+msgid "Email was verified successfully."
+msgstr "تم تفعيل عنوان البريد الالكتروني بنجاح"
+
+#: tests/test_views.py:373 views.py:198
+msgid "A new confirmation code has been sent to your phone"
+msgstr "تم ارسال رمز تحقق جديد الى هاتفك"
+
+#: tests/test_views.py:538 views.py:40
+msgid "Update User Info"
+msgstr "تحديث بيانات الحساب"
+
+#: tests/test_views.py:576 views.py:47
+msgid "your profile has been updated successfully"
+msgstr "تم تحديث بيانات حسابك بنجاح"
+
+#: tests/test_views.py:665 views.py:78
+msgid "Update Phone Number"
+msgstr "تحديث رقم الهاتف"
+
+#: utils.py:23
+msgid "Activate your account."
+msgstr "تفعيل الحساب الخاص بك"
+
+#: views_api.py:115
+msgid "Password updated successfully"
+msgstr "تم تحديث كلمة المرور بنجاح"
+
+#: views_api.py:144
+msgid ""
+"We’ve emailed you instructions for setting your password, if an account "
+"exists with the email you entered. You should receive them shortly."
+msgstr "لقد أرسلنا إليك عبر البريد الإلكتروني إرشادات حول تعيين كلمة المرور الخاصة بك ، إذا كان لديك حساب"
+"موجود مع البريد الإلكتروني الذي أدخلته. يجب أن تتسلمه قريبًا."
+
+#: views_api.py:146
+msgid ""
+"If you don’t receive an email, please make sure you’ve entered the address "
+"you registered with, and check your spam folder."
+msgstr "إذا لم تتلق بريدًا إلكترونيًا ، فيرجى التأكد من إدخال العنوان"
+"قمت بالتسجيل مع ، وتحقق من مجلد الرسائل غير المرغوب فيها."
+
+#: views_api.py:193
+msgid "Email activation link resent successfully"
+msgstr "تم إعادة إرسال رابط تنشيط البريد الإلكتروني بنجاح"
+
+#: views_api.py:249
+msgid "Email Changed Successfully"
+msgstr "تم تغيير البريد الإلكتروني بنجاح"

@@ -95,7 +95,7 @@ class LogoutSerializerStructureTestCase(TestCase):
         self.assertIn('refresh', self.serializer.fields)
 
     def test_refresh_field_help_text(self):
-        self.assertEquals(self.serializer.fields['refresh'].help_text, _("Required, please provide your refresh token"))
+        self.assertEquals(self.serializer.fields['refresh'].help_text)
 
     def test_refresh_field_is_instance_of_char_field(self):
         self.assertIsInstance(self.serializer.fields['refresh'], serializers.CharField)

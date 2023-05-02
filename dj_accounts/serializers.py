@@ -36,7 +36,7 @@ class LoginSerializer(serializers.Serializer):
 
 
 class LogoutSerializer(serializers.Serializer):
-    refresh = serializers.CharField(required=True, help_text=_("Required, please provide your refresh token"))
+    refresh = serializers.CharField(required=True)
 
     def save(self, **kwargs):
         try:

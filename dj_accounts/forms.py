@@ -152,7 +152,7 @@ class UpdateUserDataForm(UserChangeForm):
     def clean_first_name(self):
         first_name = self.cleaned_data.get('first_name', None)
         if not first_name:
-            raise ValidationError(_("Please Enter the new first"), code="required")
+            raise ValidationError(_("Please Enter the first name"), code="required")
 
         return first_name
 
