@@ -6,7 +6,6 @@ FALLBACK_LOCALE = 'en-us'
 MAIN_LANGUAGE = 'en-us'
 LANGUAGES = [
     ("en-us", _("English United States")),
-    ("en", _("English")),
     ("ar", _("Arabic"))
 ]
 
