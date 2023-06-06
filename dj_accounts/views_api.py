@@ -4,7 +4,7 @@ import traceback
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.contrib.auth.forms import PasswordResetForm
+from django.contrib.auth.forms import PasswordResetForm, PasswordChangeForm
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.encoding import force_text
 from django.utils.http import urlsafe_base64_decode
@@ -13,7 +13,6 @@ from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy as _
 from rest_framework import status
 from rest_framework.exceptions import ValidationError
-from rest_framework.generics import UpdateAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -22,7 +21,6 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 from .forms import UpdateEmailForm, UpdatePhoneNumberForm, MultipleLoginForm
 from .forms import VerifyPhoneForm
-from .serializers import ChangePasswordSerializer
 from .utils import account_activation_token, send_mail_confirmation, get_user_tokens, get_errors, get_settings_value, \
     get_class_from_settings
 from .verify_phone import VerifyPhone
@@ -30,7 +28,7 @@ from .verify_phone import VerifyPhone
 UserModel = get_user_model()
 
 
-class UserSignupAPIView(APIView):
+class RegisterAPIView(APIView):
     access_token = None
     refresh_token = None
     token = None
@@ -116,21 +114,8 @@ class UserLogoutAPIView(APIView):
             RefreshToken(token).blacklist()
         except TokenError:
             raise ValidationError({"refresh": _('Invalid token.')})
+
         return Response(status=status.HTTP_204_NO_CONTENT)
-
-
-class ChangePasswordAPIView(UpdateAPIView):
-    serializer_class = ChangePasswordSerializer
-    model = UserModel
-    permission_classes = [IsAuthenticated]
-
-    def update(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data, context={'request': request})
-
-        if serializer.is_valid():
-            serializer.save()
-            return Response(status=status.HTTP_200_OK, data={'msg': _("Password updated successfully")})
-        return Response(status=status.HTTP_422_UNPROCESSABLE_ENTITY, data=serializer.errors)
 
 
 class PasswordResetAPIView(APIView):
@@ -225,60 +210,89 @@ class VerifyEmailAPIView(APIView):
         return Response({"message": _('Email was verified successfully.')}, status=status.HTTP_200_OK)
 
 
-class UpdateProfileAPIView(APIView):
-    """
-    An endpoint for changing User Profile Data.
-    """
+class ProfileDetailsAPIView(APIView):
+    permission_classes = (IsAuthenticated,)
 
-    def get_serializer_class(self):
-        serializer_class = getattr(settings, "PROFILE_SERIALIZER", 'dj_accounts.serializer.UpdateUserDataSerializer')
-        if type(serializer_class) is str:
-            form_class_split = serializer_class.split('.')
+    def get_profile_serializer(self):
+        profile_handler = getattr(settings, "PROFILE_SERIALIZER_HANDLER",
+                                  'dj_accounts.tests.profile_handlers.profile_serializer_handler')
+        profile_handler_split = profile_handler.split('.')
+        class_name = profile_handler_split[-1:][0]
+        module_name = profile_handler_split[:-1]
+        return getattr(importlib.import_module('.'.join(module_name)), class_name)()
+
+    def get(self, request, *args, **kwargs):
+        return Response(self.get_profile_serializer()(self.request.user).data, status=status.HTTP_200_OK)
+
+
+class UpdateProfileAPIView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get_form_class(self):
+        form_class = getattr(settings, "PROFILE_FORM", 'dj_accounts.forms.UserChangeForm')
+        if type(form_class) is str:
+            form_class_split = form_class.split('.')
             class_name = form_class_split[-1:][0]
             module_name = form_class_split[:-1]
             return getattr(importlib.import_module('.'.join(module_name)), class_name)
-        return serializer_class
+        return form_class
 
-    permission_classes = (IsAuthenticated,)
+    def get_profile_serializer(self):
+        profile_handler = getattr(settings, "PROFILE_SERIALIZER_HANDLER",
+                                  'dj_accounts.tests.profile_handlers.profile_serializer_handler')
+        profile_handler_split = profile_handler.split('.')
+        class_name = profile_handler_split[-1:][0]
+        module_name = profile_handler_split[:-1]
+        return getattr(importlib.import_module('.'.join(module_name)), class_name)()
 
-    def put(self, request, *args, **kwargs):
-        serializer = self.get_serializer_class()(data=request.data, instance=request.user)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
+    def post(self, request, *args, **kwargs):
+        form = self.get_form_class()(data=request.data, instance=request.user)
+        if form.is_valid():
+            form.save()
+            self.request.user.refresh_from_db()
+            return Response(self.get_profile_serializer()(self.request.user).data, status=status.HTTP_200_OK)
+        return Response(form.errors, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
+
+
+class ChangePasswordAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        form = PasswordChangeForm(data=request.data, user=request.user)
+        if form.is_valid():
+            form.save()
+            return Response(data={'message': _("Password updated successfully")}, status=status.HTTP_200_OK)
+        return Response(get_errors(form.errors.as_data()), status=status.HTTP_422_UNPROCESSABLE_ENTITY)
 
 
 class ChangeEmailAPIView(APIView):
-    """
-    An endpoint for changing Email.
-    """
     permission_classes = (IsAuthenticated,)
 
-    def get_serializer_class(self):
-        # todo: change this serializer to basic Update Email Form
-        return getattr(settings, "UPDATE_EMAIL_FORM", UpdateEmailForm)
-
-    def put(self, request, *args, **kwargs):
-        validation_from = self.get_serializer_class()(data=request.data, user=request.user)
-        if validation_from.is_valid():
-            validation_from.save()
-            return Response({'message': _('Email Changed Successfully')}, status=status.HTTP_201_CREATED)
-        return Response(validation_from.errors, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
+    def post(self, request, *args, **kwargs):
+        form = UpdateEmailForm(data=request.data, user=request.user)
+        if form.is_valid():
+            form.save()
+            return Response({'message': _('Email Changed Successfully')}, status=status.HTTP_200_OK)
+        return Response(get_errors(form.errors.as_data()), status=status.HTTP_422_UNPROCESSABLE_ENTITY)
 
 
 class ChangePhoneAPIView(APIView):
-    """
-    An endpoint for changing Phone.
-    """
     permission_classes = (IsAuthenticated,)
 
-    def get_serializer_class(self):
-        return getattr(settings, "UPDATE_PHONE_FORM", UpdatePhoneNumberForm)
+    def post(self, request, *args, **kwargs):
+        form = UpdatePhoneNumberForm(data=request.data, user=request.user)
+        if form.is_valid():
+            form.save()
+            return Response({'message': _('Phone Changed Successfully')}, status=status.HTTP_200_OK)
+        return Response(get_errors(form.errors.as_data()), status=status.HTTP_422_UNPROCESSABLE_ENTITY)
 
-    def put(self, request, *args, **kwargs):
-        validated_fields = self.get_serializer_class()(data=request.data, user=request.user)
-        if validated_fields.is_valid():
-            validated_fields.save()
-            return Response(status=status.HTTP_201_CREATED)
-        return Response(validated_fields.errors, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
+
+class DeleteProfileAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        UserLogoutAPIView().post(request, *args, **kwargs)
+        request.user.delete()
+        return Response({
+            "message": _("Account Deleted Successfully!")
+        })

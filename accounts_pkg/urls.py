@@ -6,5 +6,5 @@ urlpatterns = [
     path('', include('dj_accounts.urls.site_urls.urls_auth')),
     # include api urls
     path('api/', include('dj_accounts.urls.api_urls.urls_auth_api')),
-    path('api/', include('dj_accounts.urls.api_urls.urls_profile_api')),
+    path('api/me/', include('dj_accounts.urls.api_urls.urls_profile_api')),
 ]

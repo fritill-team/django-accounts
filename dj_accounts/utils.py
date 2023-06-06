@@ -63,3 +63,5 @@ def get_class_from_settings(settings_key, default_class=None):
         class_name = default_class
 
     return import_class_or_function(class_name) if type(class_name) is str else class_name
+
+
