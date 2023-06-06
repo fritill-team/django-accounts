@@ -4,6 +4,7 @@ import traceback
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.encoding import force_text
 from django.utils.http import urlsafe_base64_decode
@@ -11,17 +12,19 @@ from django.utils.timezone import now
 from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy as _
 from rest_framework import status
+from rest_framework.exceptions import ValidationError
 from rest_framework.generics import UpdateAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from .forms import UpdateEmailForm, UpdatePhoneNumberForm
+from .forms import UpdateEmailForm, UpdatePhoneNumberForm, MultipleLoginForm
 from .forms import VerifyPhoneForm
-from .serializers import LogoutSerializer, PasswordResetSerializer, RegisterSerializer, \
-    LoginSerializer, ChangePasswordSerializer
-from .utils import account_activation_token, send_mail_confirmation
+from .serializers import ChangePasswordSerializer
+from .utils import account_activation_token, send_mail_confirmation, get_user_tokens, get_errors, get_settings_value, \
+    get_class_from_settings
 from .verify_phone import VerifyPhone
 
 UserModel = get_user_model()
@@ -79,27 +82,41 @@ class LoginAPIView(APIView):
     authentication_classes = []
     permission_classes = []
 
+    def get_form_class(self):
+        """
+        if MULTIPLE_AUTHENTICATION_ACTIVE is True
+        - returns MultipleLoginForm
+        else
+        - returns the regular AuthenticationForm if LOGIN_FORM setting is not defined
+        - returns the provided LOGIN_FORM if set
+        """
+        if get_settings_value('MULTIPLE_AUTHENTICATION_ACTIVE', False):
+            return MultipleLoginForm
+        return get_class_from_settings('LOGIN_FORM', 'django.contrib.auth.forms.AuthenticationForm')
+
     def post(self, request, *args, **kwargs):
-        serializer = LoginSerializer(data=request.data)
-        if serializer.is_valid():
-            user = serializer.cache_user
-            tokens = RefreshToken.for_user(user)
-            return Response({
-                "access_token": str(tokens.access_token),
-                "refresh_token": str(tokens)
-            }, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
+        form = self.get_form_class()(data=request.data)
+        if form.is_valid():
+            user = form.user_cache
+            tokens = get_user_tokens(user)
+            return Response(tokens, status=status.HTTP_200_OK)
+
+        return Response(get_errors(form.errors.as_data()), status=status.HTTP_422_UNPROCESSABLE_ENTITY)
 
 
 class UserLogoutAPIView(APIView):
     permission_classes = (IsAuthenticated,)
 
     def post(self, request, *args, **kwargs):
-        serializer = LogoutSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(status=status.HTTP_204_NO_CONTENT)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        token = request.POST.get('refresh', None)
+        if not token:
+            return Response({_("token field is required")}, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
+
+        try:
+            RefreshToken(token).blacklist()
+        except TokenError:
+            raise ValidationError({"refresh": _('Invalid token.')})
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class ChangePasswordAPIView(UpdateAPIView):
@@ -127,8 +144,8 @@ class PasswordResetAPIView(APIView):
     token_generator = default_token_generator
 
     def post(self, request, *args, **kwargs):
-        serializer = PasswordResetSerializer(data=request.data)
-        if serializer.is_valid():
+        form = PasswordResetForm(data=request.data)
+        if form.is_valid():
             opts = {
                 'use_https': self.request.is_secure(),
                 'token_generator': self.token_generator,
@@ -139,14 +156,14 @@ class PasswordResetAPIView(APIView):
                 'html_email_template_name': self.html_email_template_name,
                 'extra_email_context': self.extra_email_context,
             }
-            serializer.save(opts=opts)
+            form.save(**opts)
             return Response({"message": "{} {}".format(
                 _('We’ve emailed you instructions for setting your password, '
                   'if an account exists with the email you entered. You should receive them shortly.'),
                 _('If you don’t receive an email, please make sure you’ve entered '
                   'the address you registered with, and check your spam folder.'))},
                 status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
+        return Response(get_errors(form.errors.as_data()), status=status.HTTP_422_UNPROCESSABLE_ENTITY)
 
 
 class VerifyPhoneAPIView(APIView):
