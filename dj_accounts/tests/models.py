@@ -44,7 +44,7 @@ class User(AbstractUser):
 
     USERNAME_FIELD = 'username'
     EMAIL_FIELD = 'email'
-    REQUIRED_FIELDS = ['phone']
+    REQUIRED_FIELDS = ['phone', 'email']
     AUTHENTICATION_FIELDS = ['email', 'username', 'phone', 'id']
 
     username_validator = UnicodeUsernameValidator()

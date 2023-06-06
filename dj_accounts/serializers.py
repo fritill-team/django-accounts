@@ -6,21 +6,6 @@ from rest_framework import serializers
 UserModel = get_user_model()
 
 
-class PasswordResetSerializer(serializers.Serializer):
-    email = serializers.EmailField(max_length=254)
-
-    form = None
-
-    def validate(self, attrs):
-        self.form = PasswordResetForm(data=attrs)
-        if not self.form.is_valid():
-            raise serializers.ValidationError(self.form.errors)
-        return attrs
-
-    def save(self, **kwargs):
-        opts = kwargs.get('opts')
-        self.form.save(**opts)
-
 
 class UpdateUserDataSerializer(serializers.ModelSerializer):
     class Meta:
